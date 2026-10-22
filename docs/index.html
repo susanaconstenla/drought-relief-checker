@@ -493,7 +493,7 @@ function applyImport(mode){
   const miss=res.missing.filter(k=>COLS.find(c=>c.k===k).req);
   let html=`<div class="notice ${errs?"warn":"ok"}">Read <b>${fmt(rows.length)}</b> rows from the “${esc(res.sheet)}” sheet of <b>${esc(name)}</b>. `;
   html+= errs||warns ? `${fmt(errs)} ${errs===1?"row has":"rows have"} errors to fix and ${fmt(warns)} ${warns===1?"needs":"need"} a second look. ` : `No problems found. `;
-  if(fixed) html+=`${fmt(fixed)} ${fixed===1?"value was":"values were"} tidied automatically (shown in blue). `;
+  if(fixed) html+=`${fmt(fixed)} ${fixed===1?"row had values":"rows had values"} tidied automatically (shown in blue). `;
   if(miss.length) html+=`<br>Required columns not found in the file: ${miss.map(k=>"<b>"+esc(LABEL[k])+"</b>").join(", ")}. You can fill them in below.`;
   if(res.unknown.length) html+=`<br>Columns ignored: ${res.unknown.map(esc).join(", ")}.`;
   $("#importMsg").innerHTML=html+"</div>";
@@ -507,7 +507,7 @@ function summarize(rows){
   const cov={};
   for(const r of rows){ const v=r.v||r;
     if(WARD_MAP.has(norm(v.ward))) wards.add(v.ward);
-    if(/^\d{4}-\d{2}$/.test(v.month)){ months.add(v.month); if(!minM||v.month<minM) minM=v.month; if(!maxM||v.month>maxM) maxM=v.month; }
+    if(/^\d{4}-(0[1-9]|1[0-2])$/.test(v.month)){ months.add(v.month); if(!minM||v.month<minM) minM=v.month; if(!maxM||v.month>maxM) maxM=v.month; }
     const h=parseCount(v.hh); if(h!==null) hh+=h;
     if(WARD_MAP.has(norm(v.ward))&&/^\d{4}-\d{2}$/.test(v.month)&&v.month>="2024-01"&&v.month<=CUR){
       const i=idxOf(v.month), w=WARD_MAP.get(norm(v.ward)); cov[w]=cov[w]||{}; const val=(v.amount==="0")?0:1; cov[w][i]=Math.max(cov[w][i]??0,val); }
