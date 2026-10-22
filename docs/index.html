@@ -1,0 +1,680 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Drought Relief Data Checker</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&family=Source+Serif+4:opsz,wght@8..60,600;8..60,700&display=swap">
+<script src="config.js"></script>
+<script src="xlsx.full.min.js"></script>
+<style>
+/* Layout: one centred working column under a deep-blue header band; the data grid repeats the template's blue REQUIRED / grey OPTIONAL banners */
+:root{
+  --bg:#F2F4F8; --surface:#FFFFFF; --surface-2:#F7F8FB; --ink:#14213A; --muted:#56617A; --line:#DAE0EA;
+  --req:#1F3A68; --req-ink:#FFFFFF; --opt:#7A8394; --opt-ink:#FFFFFF; --accent:#B97A12;
+  --ok:#2A764A; --ok-soft:#E4F1E8; --warn:#8F5D07; --warn-soft:#FBF0D9; --err:#B42318; --err-soft:#FCEAE8; --fix:#2C5797; --fix-soft:#E7EEF8;
+  --cov-aid:#2C5797; --cov-zero:#A3B9DA; --cov-none:#E5E9EF;
+  --f-display:"Source Serif 4", Georgia, "Times New Roman", serif;
+  --f-body:"IBM Plex Sans", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --f-mono:"IBM Plex Mono", ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  --r:6px;
+}
+@media (prefers-color-scheme: dark){ :root:not([data-theme="light"]){
+  --bg:#0D1320; --surface:#151D2C; --surface-2:#111827; --ink:#E5EAF3; --muted:#9AA5B9; --line:#263247;
+  --req:#24467D; --req-ink:#FFFFFF; --opt:#566074; --opt-ink:#FFFFFF; --accent:#E2A94A;
+  --ok:#62C38F; --ok-soft:#163326; --warn:#E6B25A; --warn-soft:#3A2D14; --err:#F2847A; --err-soft:#3D1C1C; --fix:#8DB3EC; --fix-soft:#1A2A45;
+  --cov-aid:#6F9DE2; --cov-zero:#34507C; --cov-none:#202A3B; color-scheme:dark;
+}}
+:root[data-theme="dark"]{
+  --bg:#0D1320; --surface:#151D2C; --surface-2:#111827; --ink:#E5EAF3; --muted:#9AA5B9; --line:#263247;
+  --req:#24467D; --req-ink:#FFFFFF; --opt:#566074; --opt-ink:#FFFFFF; --accent:#E2A94A;
+  --ok:#62C38F; --ok-soft:#163326; --warn:#E6B25A; --warn-soft:#3A2D14; --err:#F2847A; --err-soft:#3D1C1C; --fix:#8DB3EC; --fix-soft:#1A2A45;
+  --cov-aid:#6F9DE2; --cov-zero:#34507C; --cov-none:#202A3B; color-scheme:dark;
+}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+html{color-scheme:light}
+body{margin:0}
+img{max-width:100%}
+.codein{font:inherit;font-family:var(--f-mono);padding:8px 10px;border:1px solid var(--line);border-radius:var(--r);background:var(--surface);color:var(--ink);width:190px;text-transform:uppercase}
+body{background:var(--bg);color:var(--ink);font-family:var(--f-body);font-size:15px;line-height:1.5}
+.wrap{max-width:1180px;margin:0 auto;padding-left:max(16px, env(safe-area-inset-left, 0px));padding-right:max(16px, env(safe-area-inset-right, 0px))}
+.top{background:var(--req);color:var(--req-ink)}
+.top .wrap{padding-block:28px 22px;display:flex;flex-wrap:wrap;gap:16px 32px;align-items:flex-end;justify-content:space-between}
+.eyebrow{font-size:12px;letter-spacing:.08em;text-transform:uppercase;opacity:.8;margin:0 0 6px}
+h1{font-family:var(--f-display);font-weight:700;font-size:clamp(26px,4vw,36px);line-height:1.15;margin:0;text-wrap:balance}
+.lede{margin:8px 0 0;max-width:62ch;opacity:.9}
+.acct{font-size:13px;padding:6px 12px;border-radius:999px;background:rgba(255,255,255,.14);white-space:nowrap}
+.tabs{display:flex;gap:4px;overflow-x:auto;border-bottom:1px solid var(--line);padding-block:0;margin-top:0}
+.tab{appearance:none;border:0;background:none;color:var(--muted);font:inherit;font-weight:500;padding:14px 14px 12px;border-bottom:3px solid transparent;cursor:pointer;white-space:nowrap}
+.tab[aria-selected="true"]{color:var(--ink);border-bottom-color:var(--accent)}
+.tab:focus-visible,.btn:focus-visible,input:focus-visible,textarea:focus-visible,select:focus-visible{outline:2px solid var(--accent);outline-offset:1px}
+main.wrap{padding-block:24px 64px;display:flex;flex-direction:column;gap:20px}
+section{display:flex;flex-direction:column;gap:20px}
+.panel{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:20px;min-width:0}
+h2{font-family:var(--f-display);font-weight:600;font-size:21px;margin:0 0 4px;text-wrap:balance}
+h3{font-size:15px;margin:0 0 6px;font-weight:600}
+.sub{color:var(--muted);margin:0 0 16px;max-width:70ch}
+.row{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
+.btn{appearance:none;font:inherit;font-size:14px;font-weight:500;border-radius:var(--r);padding:9px 14px;cursor:pointer;border:1px solid var(--line);background:var(--surface);color:var(--ink);display:inline-flex;align-items:center;gap:6px}
+.btn:hover{border-color:var(--muted)}
+.btn.primary{background:var(--req);border-color:var(--req);color:var(--req-ink)}
+.btn.primary:hover{filter:brightness(1.12)}
+.btn.danger{color:var(--err);border-color:var(--err)}
+.btn.small{font-size:13px;padding:5px 10px}
+.btn:disabled{opacity:.45;cursor:not-allowed;filter:none}
+.notice{border-radius:var(--r);padding:12px 14px;font-size:14px;border:1px solid var(--line);background:var(--surface-2)}
+.notice.ok{background:var(--ok-soft);border-color:transparent}
+.notice.warn{background:var(--warn-soft);border-color:transparent}
+.notice.err{background:var(--err-soft);border-color:transparent}
+.drop{border:2px dashed var(--line);border-radius:var(--r);padding:24px;text-align:center;background:var(--surface-2);display:flex;flex-direction:column;gap:12px;align-items:center}
+.drop.over{border-color:var(--accent);background:var(--warn-soft)}
+.drop p{margin:0;color:var(--muted)}
+.drop strong{color:var(--ink)}
+.choice{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
+.tiles{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px}
+.tile{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:12px 14px}
+.tile .k{font-size:12px;color:var(--muted);letter-spacing:.04em;text-transform:uppercase}
+.tile .v{font-family:var(--f-mono);font-size:22px;font-weight:500;font-variant-numeric:tabular-nums;margin-top:2px}
+.tile .v small{font-size:13px;color:var(--muted);font-weight:400}
+.tile.bad .v{color:var(--err)} .tile.meh .v{color:var(--warn)} .tile.good .v{color:var(--ok)}
+.toolbar{display:flex;flex-wrap:wrap;gap:10px;align-items:center;justify-content:space-between;margin-bottom:12px}
+.seg{display:inline-flex;border:1px solid var(--line);border-radius:var(--r);overflow:hidden}
+.seg button{appearance:none;border:0;background:var(--surface);color:var(--muted);font:inherit;font-size:13px;padding:6px 12px;cursor:pointer}
+.seg button[aria-pressed="true"]{background:var(--ink);color:var(--surface)}
+.scroll{overflow-x:auto;border:1px solid var(--line);border-radius:var(--r);max-width:100%}
+table.grid{border-collapse:separate;border-spacing:0;font-size:13px;width:max-content;min-width:100%}
+table.grid th{text-align:left;font-weight:600;padding:8px;background:var(--surface-2);border-bottom:1px solid var(--line);position:sticky;top:0;white-space:nowrap}
+table.grid tr.band th{padding:4px 8px;font-size:11px;letter-spacing:.08em;text-transform:uppercase;border:0}
+table.grid th.reqb{background:var(--req);color:var(--req-ink)}
+table.grid th.optb{background:var(--opt);color:var(--opt-ink)}
+table.grid td{border-bottom:1px solid var(--line);padding:2px;vertical-align:top;background:var(--surface)}
+table.grid td.num{font-family:var(--f-mono);color:var(--muted);padding:8px;text-align:right;font-variant-numeric:tabular-nums}
+table.grid td.stat{width:220px;min-width:220px;padding:6px 8px;font-size:12px;line-height:1.35}
+table.grid input{width:100%;font:inherit;color:var(--ink);background:transparent;border:1px solid transparent;border-radius:4px;padding:6px 7px}
+table.grid input:hover{border-color:var(--line)}
+table.grid input:focus{border-color:var(--accent);background:var(--surface);outline:none}
+td.k-ward{min-width:170px} td.k-county{min-width:140px} td.k-month{min-width:104px} td.k-aid{min-width:200px}
+td.k-amount{min-width:118px} td.k-unit{min-width:112px} td.k-hh{min-width:100px} td.k-agency{min-width:140px} td.k-pay{min-width:170px} td.k-notes{min-width:280px}
+td.k-month input,td.k-amount input,td.k-hh input{font-family:var(--f-mono);font-variant-numeric:tabular-nums}
+td.k-amount input,td.k-hh input{text-align:right}
+td.c-err input{background:var(--err-soft);border-color:var(--err)}
+td.c-warn input{background:var(--warn-soft)}
+td.c-fix input{background:var(--fix-soft)}
+.pill{display:inline-block;font-size:11px;font-weight:600;letter-spacing:.03em;padding:1px 7px;border-radius:999px;margin-right:4px}
+.pill.err{background:var(--err-soft);color:var(--err)} .pill.warn{background:var(--warn-soft);color:var(--warn)}
+.pill.ok{background:var(--ok-soft);color:var(--ok)} .pill.fix{background:var(--fix-soft);color:var(--fix)}
+.msg{display:block;color:var(--muted);margin-top:2px}
+button.del{appearance:none;border:0;background:none;color:var(--muted);font-size:18px;line-height:1;padding:6px 8px;cursor:pointer;border-radius:4px}
+button.del:hover{color:var(--err);background:var(--err-soft)}
+.empty{padding:28px 16px;color:var(--muted);text-align:center}
+.pager{display:flex;flex-wrap:wrap;gap:10px;align-items:center;justify-content:space-between;margin-top:12px;font-size:13px;color:var(--muted)}
+.fields{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:14px}
+label.f{display:flex;flex-direction:column;gap:4px;font-size:13px;font-weight:500}
+label.f span.h{font-weight:400;color:var(--muted)}
+label.f input,label.f textarea{font:inherit;font-size:14px;padding:9px 10px;border:1px solid var(--line);border-radius:var(--r);background:var(--surface);color:var(--ink)}
+label.f textarea{min-height:76px;resize:vertical}
+.full{grid-column:1/-1}
+.confirm{margin-top:16px;padding:14px;border-radius:var(--r);background:var(--surface-2);border:1px solid var(--line)}
+.bar{height:8px;border-radius:999px;background:var(--cov-none);overflow:hidden;margin-top:10px}
+.bar i{display:block;height:100%;width:0;background:var(--req);transition:width .2s}
+table.list{border-collapse:collapse;width:100%;font-size:14px}
+table.list th,table.list td{text-align:left;padding:10px 8px;border-bottom:1px solid var(--line);vertical-align:top}
+table.list th{font-size:12px;color:var(--muted);font-weight:500;letter-spacing:.04em;text-transform:uppercase;white-space:nowrap}
+table.list td.n{font-family:var(--f-mono);font-variant-numeric:tabular-nums;text-align:right;white-space:nowrap}
+table.list th.n{text-align:right}
+table.list tr.org td{background:var(--surface-2);font-weight:600}
+.mono{font-family:var(--f-mono);font-variant-numeric:tabular-nums}
+.muted{color:var(--muted)}
+.covwrap{max-height:540px;overflow:auto;border:1px solid var(--line);border-radius:var(--r);background:var(--surface)}
+.cov{display:grid;font-size:11px;width:max-content}
+.cov .wl{position:sticky;left:0;background:var(--surface);padding:0 8px 0 6px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;width:170px;line-height:14px;z-index:1}
+.cov .hd{position:sticky;top:0;background:var(--surface);z-index:2;font-family:var(--f-mono);color:var(--muted);height:22px;line-height:22px;white-space:nowrap}
+.cov .corner{position:sticky;left:0;top:0;z-index:3;background:var(--surface)}
+.cov .c{width:12px;height:12px;margin:1px;border-radius:2px;background:var(--cov-none)}
+.cov .c.a{background:var(--cov-aid)} .cov .c.z{background:var(--cov-zero)}
+.legend{display:flex;flex-wrap:wrap;gap:16px;font-size:13px;color:var(--muted);margin:10px 0}
+.legend i{display:inline-block;width:12px;height:12px;border-radius:2px;vertical-align:-2px;margin-right:6px}
+.guide dl{display:grid;grid-template-columns:minmax(160px,220px) 1fr;gap:14px 24px;margin:0}
+.guide dt{font-weight:600}
+.guide dd{margin:0;max-width:72ch;color:var(--ink)}
+@media (max-width:640px){.guide dl{grid-template-columns:1fr;gap:4px}.guide dd{margin-bottom:12px}}
+code,.code{font-family:var(--f-mono);font-size:.92em;background:var(--surface-2);padding:1px 5px;border-radius:4px;border:1px solid var(--line)}
+#toast{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(20px + env(safe-area-inset-bottom, 0px));background:var(--ink);color:var(--surface);padding:10px 16px;border-radius:var(--r);font-size:14px;max-width:calc(100% - 32px);box-shadow:0 6px 24px rgba(0,0,0,.2);z-index:20}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
+@media (prefers-reduced-motion: reduce){*{transition:none!important}}
+</style>
+</head>
+<body>
+<header class="top">
+  <div class="wrap">
+    <div>
+      <p class="eyebrow">Ward-month reporting · January 2024 to present</p>
+      <h1>Drought Relief Data Checker</h1>
+      <p class="lede">Check your records of drought relief disbursed in the 125 wards in scope, then upload them securely to the research team: one row per ward, per month, per type of aid and implementing organization.</p>
+    </div>
+    <div class="acct">Files are checked in your browser</div>
+  </div>
+</header>
+
+<div class="wrap">
+  <nav class="tabs" role="tablist" aria-label="Sections">
+    <button class="tab" role="tab" id="t-submit" aria-selected="true" data-tab="submit">Check and upload</button>
+    <button class="tab" role="tab" id="t-guide" aria-selected="false" data-tab="guide">Guidance</button>
+  </nav>
+</div>
+
+<main class="wrap">
+  <!-- SUBMIT -->
+  <section id="tab-submit" role="tabpanel" aria-labelledby="t-submit">
+    <div class="notice"><b>How it works:</b> 1. add your rows and fix anything flagged · 2. tell us who you are · 3. download the checked file · 4. upload it to Cornell Box. Nothing leaves your computer until step 4.</div>
+
+    <div class="panel">
+      <h2>1. Add your rows</h2>
+      <p class="sub">Upload the filled-in Excel template, or any .xlsx or .csv file with the same column headings. You can also type rows in directly. Every row is checked against the template rules, and you can fix problems here before you upload.</p>
+      <div class="drop" id="drop">
+        <p><strong>Drop your file here</strong> or choose it from your computer</p>
+        <div class="row" style="justify-content:center">
+          <label class="btn primary" for="file">Choose file…</label>
+          <input type="file" id="file" class="sr" accept=".xlsx,.xls,.csv,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,text/csv">
+          <button class="btn" id="btnTemplate" type="button">Download blank template (.xlsx)</button>
+          <button class="btn" id="btnAddRow" type="button">Add a row by hand</button>
+        </div>
+        <p style="font-size:13px">Your file is read in this browser. Nothing is sent anywhere until you upload it in step 4.</p>
+      </div>
+      <div id="importMsg" style="margin-top:14px" hidden></div>
+    </div>
+
+    <div class="tiles" id="tiles"></div>
+
+    <div class="panel">
+      <div class="toolbar">
+        <div class="row">
+          <div class="seg" role="group" aria-label="Filter rows">
+            <button type="button" data-filter="all" aria-pressed="true">All rows</button>
+            <button type="button" data-filter="issues" aria-pressed="false">Needs a look</button>
+            <button type="button" data-filter="errors" aria-pressed="false">Errors only</button>
+          </div>
+          <span class="muted" id="gridCount" style="font-size:13px"></span>
+        </div>
+        <div class="row">
+          <button class="btn small" id="btnDropErr" type="button" hidden>Remove rows with errors</button>
+          <button class="btn small" id="btnClear" type="button">Clear all rows</button>
+        </div>
+      </div>
+      <div id="clearConfirm" class="confirm" hidden>
+        <p style="margin:0 0 10px">Remove all <span id="clearN"></span> rows from this page? Files you have already uploaded are not affected.</p>
+        <div class="row"><button class="btn danger" id="btnClearYes" type="button">Remove all rows</button><button class="btn" id="btnClearNo" type="button">Keep them</button></div>
+      </div>
+      <div class="scroll" id="gridScroll">
+        <table class="grid">
+          <thead>
+            <tr class="band"><th colspan="2" style="background:var(--surface-2)"></th><th class="reqb" colspan="7">Required</th><th class="optb" colspan="3">Optional · please complete if available</th><th style="background:var(--surface-2)"></th></tr>
+            <tr><th>#</th><th>Check</th><th>Ward</th><th>County</th><th>Month (YYYY-MM)</th><th>Type of aid distributed</th><th>Amount disbursed</th><th>Currency / unit</th><th>Total households served</th><th>Distributing agency</th><th>Form of payment</th><th>Notes</th><th><span class="sr">Delete</span></th></tr>
+          </thead>
+          <tbody id="gridBody"></tbody>
+        </table>
+      </div>
+      <div class="pager" id="pager"></div>
+    </div>
+
+    <div class="panel">
+      <h2>2. Tell us who you are</h2>
+      <p class="sub">These details go into the checked file so the research team knows who sent it.</p>
+      <div class="fields">
+        <label class="f">Organization <input id="fOrg" autocomplete="organization" placeholder="e.g. County Government of Marsabit"></label>
+        <label class="f">Contact person <input id="fName" autocomplete="name" placeholder="Full name"></label>
+        <label class="f">Contact email <input id="fEmail" type="email" autocomplete="email" placeholder="name@organization.org"></label>
+        <label class="f full">Message to the research team <span class="h">Optional. For example, which wards or months are not covered and why.</span><textarea id="fMsg"></textarea></label>
+      </div>
+    </div>
+
+    <div class="panel">
+      <h2>3. Download your checked file</h2>
+      <p class="sub">Saves a clean copy of your rows in the template's format, with your details and a list of anything flagged or corrected. Rows flagged to double-check are kept; explain them in the message or in Notes if needed.</p>
+      <div class="row"><button class="btn primary" id="btnDownloadChecked" type="button">Download checked file (.xlsx)</button><span class="muted" id="dlHint" style="font-size:13px"></span></div>
+      <div id="dlResult" style="margin-top:14px" hidden></div>
+    </div>
+
+    <div class="panel" id="step4">
+      <h2>4. Upload it to Cornell Box</h2>
+      <p class="sub">Open the secure upload page and add the file you downloaded in step 3. You don't need a Box account, and you can't see other organizations' files. To correct something later, check the corrected rows here and upload the new file; the research team keeps every version.</p>
+      <div class="row" id="boxRow"></div>
+    </div>
+  </section>
+
+  <!-- GUIDE -->
+  <section id="tab-guide" role="tabpanel" aria-labelledby="t-guide" hidden>
+    <div class="panel guide">
+      <h2>What we need</h2>
+      <p class="sub">Records of drought relief disbursed in each of the 125 listed wards, for every month from January 2024 to the present, and by implementing organization where possible. The ward-month structure is essential: figures added up to county level or to a full year cannot be used in the analysis.</p>
+      <dl>
+        <dt>Required vs optional</dt><dd>Ward, County, Month, Type of aid, Amount, Currency / unit and Households served are needed for every row. Distributing agency, Form of payment and Notes are welcome whenever the information is on hand, but a row is still usable without them.</dd>
+        <dt>One row per aid type and organization</dt><dd>If a ward received two kinds of assistance in the same month (for example a cash transfer and a food ration), enter two separate rows. If the same type of aid was distributed by different organizations, enter one row for each. If that is not possible, enter the total and explain in Notes.</dd>
+        <dt>Months with no aid</dt><dd>If no aid was given in a month, record it with amount <span class="code">0</span> (Type of aid: “No disbursement this month”). This tells a month with no aid apart from a missing record.</dd>
+        <dt>Amounts</dt><dd>Enter the total disbursed in that ward-month as a plain number, with no currency symbol or thousands separator, and give the currency or physical unit in the next column. For in-kind aid, enter <span class="code">not applicable</span>; if an estimated monetary value is available, add it in Notes. The portal removes separators like <span class="code">3,000.00</span> for you.</dd>
+        <dt>Households served</dt><dd>The number of distinct households that received the aid in that ward-month. If only counts of individuals exist, enter those and say so in Notes.</dd>
+        <dt>Form of payment</dt><dd>The schedule of the transfer. For example, KES 3,000 per month for two months is “Monthly instalments”, with the per-instalment detail in Notes.</dd>
+        <dt>Ward list</dt><dd>All 125 wards in scope are offered as suggestions in the Ward column. Rows for other wards are flagged so you can check the spelling.</dd>
+        <dt>Partial data is welcome</dt><dd>If some wards or months are not feasible for your team, submit what you have. Get in touch and we can try to narrow the list.</dd>
+      </dl>
+    </div>
+    <div class="panel">
+      <h2>Example rows</h2>
+      <p class="sub">For illustration only. These rows are not part of anyone's data.</p>
+      <div class="scroll">
+        <table class="list" style="min-width:900px">
+          <thead><tr><th>Ward</th><th>County</th><th>Month</th><th>Type of aid</th><th class="n">Amount</th><th>Unit</th><th class="n">Households</th><th>Agency</th><th>Form of payment</th><th>Notes</th></tr></thead>
+          <tbody>
+            <tr><td>Loiyangalani</td><td>Marsabit</td><td class="mono">2024-03</td><td>Cash transfer</td><td class="n">3000</td><td>KES</td><td class="n">412</td><td>NDMA</td><td>Monthly instalments</td><td>KES 3,000 per household per month, two months</td></tr>
+            <tr><td>Loiyangalani</td><td>Marsabit</td><td class="mono">2024-03</td><td>Cash transfer</td><td class="n">1000</td><td>KES</td><td class="n">100</td><td>WFP</td><td>Monthly instalments</td><td>KES 1,000 per household per month, one month</td></tr>
+            <tr><td>Loiyangalani</td><td>Marsabit</td><td class="mono">2024-03</td><td>Food / in-kind ration</td><td class="n">not applicable</td><td>not applicable</td><td class="n">100</td><td>NDMA</td><td>Lump sum, one-off</td><td>In-kind food relief, approximate total value in the ward KES 10,000</td></tr>
+            <tr><td>Loiyangalani</td><td>Marsabit</td><td class="mono">2024-04</td><td>No disbursement this month</td><td class="n">0</td><td></td><td class="n">0</td><td></td><td></td><td></td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+    <div class="panel">
+      <h2>Questions</h2>
+      <p class="sub" style="margin-bottom:10px">Contact Susana Constenla-Villoslada about any field.</p>
+      <div class="row"><span class="code" id="contactEmail">sc2875@cornell.edu</span><button class="btn small" id="btnCopyEmail" type="button">Copy email address</button></div>
+    </div>
+  </section>
+</main>
+
+<datalist id="dl-ward"></datalist><datalist id="dl-county"></datalist><datalist id="dl-month"></datalist>
+<datalist id="dl-aid"></datalist><datalist id="dl-unit"></datalist><datalist id="dl-pay"></datalist>
+<div id="toast" role="status" aria-live="polite" hidden></div>
+
+<script>
+const WARDS = ["Abakaile", "Adu", "Akithi", "Bahari", "Bamba", "Bangale", "Barwago", "Bulla Pesa", "Burat", "Bute", "Butiye", "Chala", "Chari", "Chepareria", "Cherab", "Chewani", "Churo/Amaya", "Dalalekutuk", "Dandu", "Dela", "Evurore", "Ewuaso O o Nkidong'i/M", "Faza", "Garsen Central", "Golbo", "Hadado/Adhibohol", "Iftin", "Ijara", "Ikutha", "Ilchamus", "Ilkerin", "Iloodokilani", "Imbirikani/Eselenkei", "Jaribuni", "Kaeris", "Kakuma", "Kakuyuni", "Kalaliyo", "Kangeta", "Kanyangi", "Kapchoki", "Kapedo/Napeitom", "Kapenguria", "Kaputei North", "Karare", "Kasemani", "Kasigau", "Kasikeu/Kiou", "Katilu", "Kauwi", "Kiambere", "Kilgoris Central", "Kinna", "Kipini East", "Kithungo/Kitundu", "Kitise/Kithuki", "Kiunga", "Kivou", "Kolowa", "Korr/Ngurunit", "Kutulo", "Lagboghol South", "Lake Zone", "Liboi", "Loiyangalani", "Lokichar", "Maalamin", "Madogo", "Magadi", "Maji Moto/Naroosura", "Malalani/Endau", "Masol", "Masongaleni", "Masumba/Nguu", "Mboghoni", "Merigi", "Migwani", "Mikinduri", "Mosiro (Narok East)", "Mugunda", "Mukaa", "Mukogodo East", "Mukogodo West", "Mukutani", "Mwanamwinga", "Mwarakaya", "Mwawesa", "Mwereni", "Nachola", "Nanighi", "Ndavaya", "Ndoto", "Ngobit", "Ngolia", "Nkareta", "Nuu", "Oldo-nyiro", "Rhamu Dimtu", "Ribikwo", "Riwo", "Rombo", "Sagante/Jaldessa", "Saimo/Kipsaraman", "Saka", "Sericho", "Shimbir Fatuma", "Siana", "Sosiani", "Suguta Marmar", "Tangulbei/Korossi", "Tarbaj", "Thegu River", "Tseikuru", "Turbi", "Turkwel", "Ukia", "Uran", "Waa", "Wamba North", "Wamba West", "Waranqara", "Waso", "Wayu", "Wei Wei", "Witu"];
+const COUNTIES = ["Baringo", "Bomet", "Bungoma", "Busia", "Elgeyo-Marakwet", "Embu", "Garissa", "Homa Bay", "Isiolo", "Kajiado", "Kakamega", "Kericho", "Kiambu", "Kilifi", "Kirinyaga", "Kisii", "Kisumu", "Kitui", "Kwale", "Laikipia", "Lamu", "Machakos", "Makueni", "Mandera", "Marsabit", "Meru", "Migori", "Mombasa", "Murang'a", "Nairobi", "Nakuru", "Nandi", "Narok", "Nyamira", "Nyandarua", "Nyeri", "Samburu", "Siaya", "Taita-Taveta", "Tana River", "Tharaka-Nithi", "Trans Nzoia", "Turkana", "Uasin Gishu", "Vihiga", "Wajir", "West Pokot"];
+const AID_TYPES = ["Cash transfer", "Food / in-kind ration", "Food voucher", "Livestock feed / supplement", "Livestock offtake payment", "Water trucking", "Nutrition supplement (RUTF/RUSF)", "School feeding", "Other (specify in Notes)", "No disbursement this month"];
+const UNITS = ["KES","USD","not applicable"];
+const PAYS = ["Lump sum, one-off", "Monthly instalments", "Bi-monthly instalments", "Quarterly instalments", "In-kind, one-off", "In-kind, recurring", "Other (specify in Notes)"];
+const TEMPLATE_FILE = "drought_relief_disbursement_template.xlsx";
+
+const COLS = [
+  {k:"ward",label:"Ward",req:true,list:"dl-ward",s:"w"},
+  {k:"county",label:"County",req:true,list:"dl-county",s:"c"},
+  {k:"month",label:"Month (YYYY-MM)",req:true,list:"dl-month",s:"m"},
+  {k:"aid",label:"Type of aid distributed",req:true,list:"dl-aid",s:"a"},
+  {k:"amount",label:"Amount disbursed",req:true,s:"x"},
+  {k:"unit",label:"Currency / unit",req:true,list:"dl-unit",s:"u"},
+  {k:"hh",label:"Total households served",req:true,s:"h"},
+  {k:"agency",label:"Distributing agency",req:false,s:"g"},
+  {k:"pay",label:"Form of payment",req:false,list:"dl-pay",s:"p"},
+  {k:"notes",label:"Notes",req:false,s:"n"},
+];
+const KEYS = COLS.map(c=>c.k);
+const LABEL = Object.fromEntries(COLS.map(c=>[c.k,c.label]));
+
+const $ = s=>document.querySelector(s);
+const esc = s=>String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const pad = n=>String(n).padStart(2,"0");
+const fmt = n=>Number(n).toLocaleString("en-US");
+const norm = s=>String(s??"").toLowerCase().normalize("NFKD").replace(/[^a-z0-9]/g,"");
+const now = new Date();
+const CUR = now.getFullYear()+"-"+pad(now.getMonth()+1);
+const idxOf = m=>{const [y,mm]=m.split("-").map(Number);return (y-2024)*12+mm-1};
+const monthOf = i=>(2024+Math.floor(i/12))+"-"+pad(i%12+1);
+const MONTHS=[]; for(let i=0;i<=idxOf(CUR);i++) MONTHS.push(monthOf(i));
+const WARD_MAP = new Map(WARDS.map(w=>[norm(w),w]));
+const COUNTY_MAP = new Map(COUNTIES.map(c=>[norm(c),c]));
+const NA = new Set(["notapplicable","nonapplicable","noapplicable","na","notapp","inkind"]);
+const MNAMES = ["jan","feb","mar","apr","may","jun","jul","aug","sep","oct","nov","dec"];
+
+function fillList(id,arr){ $("#"+id).innerHTML = arr.map(v=>`<option value="${esc(v)}">`).join(""); }
+fillList("dl-ward",WARDS); fillList("dl-county",COUNTIES); fillList("dl-month",MONTHS.slice().reverse());
+fillList("dl-aid",AID_TYPES); fillList("dl-unit",UNITS); fillList("dl-pay",PAYS);
+
+let toastT;
+function toast(msg){ const t=$("#toast"); t.textContent=msg; t.hidden=false; clearTimeout(toastT); toastT=setTimeout(()=>t.hidden=true,4200); }
+
+/* ---------- parsing & validation ---------- */
+function parseMonth(raw){
+  let s=String(raw??"").trim(); if(!s) return null;
+  if(/^\d{5}(\.\d+)?$/.test(s)){ const n=Number(s); if(n>30000&&n<80000&&window.XLSX){ const d=XLSX.SSF.parse_date_code(n); if(d) return d.y+"-"+pad(d.m); } return null; }
+  let m, y, mo;
+  if((m=s.match(/^(\d{4})[-\/. ](\d{1,2})$/))){y=+m[1];mo=+m[2];}
+  else if((m=s.match(/^(\d{4})[-\/.](\d{1,2})[-\/.](\d{1,2})(?:[ T].*)?$/))){y=+m[1];mo=+m[2];}
+  else if((m=s.match(/^(\d{1,2})[-\/.](\d{4})$/))){y=+m[2];mo=+m[1];}
+  else if((m=s.match(/^(\d{4})(\d{2})$/))){y=+m[1];mo=+m[2];}
+  else if((m=s.match(/^([A-Za-z]{3,9})\.?[\s,\-\/]+(\d{4})$/))){y=+m[2];mo=MNAMES.indexOf(m[1].slice(0,3).toLowerCase())+1;}
+  else if((m=s.match(/^(\d{4})[\s,\-\/]+([A-Za-z]{3,9})$/))){y=+m[1];mo=MNAMES.indexOf(m[2].slice(0,3).toLowerCase())+1;}
+  else return null;
+  if(!(mo>=1&&mo<=12)||y<1990||y>2100) return null;
+  return y+"-"+pad(mo);
+}
+function parseAmount(raw){
+  const s=String(raw??"").trim(); if(NA.has(norm(s))) return "not applicable";
+  const c=s.replace(/(ksh|kes|usd|us\$|\$)/ig,"").replace(/[,\s]/g,"");
+  if(/^-?\d+(\.\d+)?$/.test(c)) return Number(c);
+  if(/^-?\.\d+$/.test(c)) return Number(c);
+  return null;
+}
+function parseCount(raw){
+  const c=String(raw??"").trim().replace(/[,\s]/g,"");
+  if(/^\d+(\.0+)?$/.test(c)) return parseInt(c,10);
+  return null;
+}
+function setFix(r,k,msg){ r.fixes=(r.fixes||[]).filter(f=>f.k!==k); r.fixes.push({k,lvl:"fix",msg}); }
+
+function validateRow(r){
+  const v=r.v, iss=[];
+  const add=(k,lvl,msg)=>iss.push({k,lvl,msg});
+  KEYS.forEach(k=>{ v[k]=String(v[k]??"").replace(/\s+/g," ").trim(); });
+  if(!v.ward) add("ward","err","Ward is missing");
+  else { const c=WARD_MAP.get(norm(v.ward)); if(c) v.ward=c; else add("ward","warn","Not one of the 125 wards in scope. Check the spelling, or explain in Notes"); }
+  if(!v.county) add("county","err","County is missing");
+  else { const c=COUNTY_MAP.get(norm(v.county)); if(c) v.county=c; else add("county","warn","Not one of Kenya's 47 counties. Check the spelling"); }
+  if(!v.month) add("month","err","Month is missing");
+  else { const m=parseMonth(v.month);
+    if(!m) add("month","err","Use the format YYYY-MM, for example 2024-03");
+    else { if(m!==v.month){ setFix(r,"month",`Month “${v.month}” read as ${m}`); v.month=m; }
+      if(m>CUR) add("month","err","This month is in the future");
+      else if(m<"2024-01") add("month","warn","Before January 2024, outside the reporting window"); } }
+  const noAid=/^no disbursement/i.test(v.aid);
+  if(!v.aid) add("aid","err","Type of aid is missing");
+  if(v.amount===""){
+    if(noAid){ v.amount="0"; setFix(r,"amount","Amount set to 0 for a month with no disbursement"); }
+    else add("amount","err","Amount is missing. Enter 0 if no aid was given, or “not applicable” for in-kind aid");
+  } else { const a=parseAmount(v.amount);
+    if(a===null) add("amount","err","Enter a plain number, or “not applicable” for in-kind aid");
+    else { const s=String(a); if(s!==v.amount){ setFix(r,"amount",`Amount “${v.amount}” read as ${s}`); v.amount=s; }
+      if(typeof a==="number"&&a<0) add("amount","err","Amount cannot be negative");
+      if(noAid&&a!==0) add("amount","warn","Type of aid says no disbursement, but the amount is not 0"); } }
+  if(v.unit && NA.has(norm(v.unit)) && v.unit!=="not applicable"){ setFix(r,"unit",`Unit “${v.unit}” read as not applicable`); v.unit="not applicable"; }
+  const zero = v.amount==="0";
+  if(!v.unit && !zero) add("unit","err","Currency or unit is missing");
+  if(v.hh===""){ if(!zero) add("hh","err","Households served is missing"); }
+  else { const h=parseCount(v.hh);
+    if(h===null) add("hh","err","Enter a whole number of households");
+    else { const s=String(h); if(s!==v.hh){ setFix(r,"hh",`Households “${v.hh}” read as ${s}`); v.hh=s; } } }
+  if(v.notes.length>4000) add("notes","err","Notes are longer than 4,000 characters. Please shorten them");
+  r.issues=iss;
+}
+function dupKey(v){ return [v.ward,v.month,v.aid,v.agency].map(norm).join("|"); }
+function recomputeDupes(){
+  const cnt=new Map();
+  for(const r of state.rows){ r.issues=r.issues.filter(i=>i.k!=="_dup"); if(r.v.ward&&r.v.month) { const k=dupKey(r.v); cnt.set(k,(cnt.get(k)||0)+1); } }
+  for(const r of state.rows){ if(r.v.ward&&r.v.month&&cnt.get(dupKey(r.v))>1) r.issues.push({k:"_dup",lvl:"warn",msg:"Same ward, month, aid type and agency as another row. Combine them, or explain in Notes"}); }
+}
+function statusOf(r){ if(r.issues.some(i=>i.lvl==="err")) return "err"; if(r.issues.some(i=>i.lvl==="warn")) return "warn"; if((r.fixes||[]).length) return "fix"; return "ok"; }
+function validateAll(){ state.rows.forEach(validateRow); recomputeDupes(); }
+
+/* ---------- state ---------- */
+let seq=0; const newId=()=>"r"+(++seq);
+const state={rows:[],fileName:"",page:0,filter:"all"};
+const PAGE=50;
+const DRAFT_KEY="drp-draft-v1";
+let draftT;
+function saveDraft(){ clearTimeout(draftT); draftT=setTimeout(()=>{ try{ localStorage.setItem(DRAFT_KEY,JSON.stringify({rows:state.rows.map(r=>r.v),fileName:state.fileName,org:$("#fOrg").value,name:$("#fName").value,email:$("#fEmail").value,msg:$("#fMsg").value})); }catch(e){} },500); }
+function loadDraft(){ try{ const d=JSON.parse(localStorage.getItem(DRAFT_KEY)||"null"); if(!d) return;
+  state.rows=(d.rows||[]).map(v=>({id:newId(),v:{...v},issues:[],fixes:[]})); state.fileName=d.fileName||"";
+  $("#fOrg").value=d.org||""; $("#fName").value=d.name||""; $("#fEmail").value=d.email||""; $("#fMsg").value=d.msg||""; }catch(e){} }
+
+/* ---------- import ---------- */
+function colKey(h){ const n=norm(h); if(!n) return null;
+  if(n.startsWith("ward")) return "ward";
+  if(n.startsWith("county")) return "county";
+  if(n.startsWith("month")||n==="period"||n==="date") return "month";
+  if(n.includes("typeofaid")||n.startsWith("aidtype")||n==="aid"||n==="typeofassistance") return "aid";
+  if(n.startsWith("amount")) return "amount";
+  if(n.startsWith("currency")||n.startsWith("unit")) return "unit";
+  if(n.includes("household")) return "hh";
+  if(n.includes("agency")||n.includes("implementing")||n.includes("organization")||n.includes("organisation")) return "agency";
+  if(n.includes("payment")||n.includes("schedule")) return "pay";
+  if(n.startsWith("note")||n.startsWith("comment")) return "notes";
+  return null; }
+function extractRows(wb){
+  const names=[...wb.SheetNames].sort((a,b)=>(norm(b)==="data")-(norm(a)==="data"));
+  for(const name of names){
+    const aoa=XLSX.utils.sheet_to_json(wb.Sheets[name],{header:1,raw:true,defval:""});
+    for(let h=0;h<Math.min(aoa.length,15);h++){
+      const map={}; const unknown=[];
+      (aoa[h]||[]).forEach((cell,ci)=>{ const k=colKey(cell); if(k&&!(k in map)) map[k]=ci; else if(String(cell).trim()) unknown.push(String(cell).trim()); });
+      if(!("ward" in map)||!("month" in map)) continue;
+      const rows=[];
+      for(let i=h+1;i<aoa.length;i++){ const line=aoa[i]||[];
+        const v={}; KEYS.forEach(k=>{ v[k]= k in map ? String(line[map[k]]??"") : ""; });
+        if(KEYS.every(k=>!v[k].trim())) continue;
+        rows.push(v); }
+      return {sheet:name,rows,missing:KEYS.filter(k=>!(k in map)),unknown};
+    }
+  }
+  return null;
+}
+let pendingImport=null;
+async function handleFile(file){
+  const box=$("#importMsg"); box.hidden=false;
+  if(!window.XLSX){ box.innerHTML=`<div class="notice err">The spreadsheet reader didn't load. Reload the page and try again.</div>`; return; }
+  try{
+    const wb=XLSX.read(await file.arrayBuffer(),{type:"array"});
+    const res=extractRows(wb);
+    if(!res){ box.innerHTML=`<div class="notice err">Couldn't find the data table in <b>${esc(file.name)}</b>. The file needs a heading row with at least “Ward” and “Month” columns, as on the template's Data tab.</div>`; return; }
+    if(!res.rows.length){ box.innerHTML=`<div class="notice warn">The “${esc(res.sheet)}” sheet in <b>${esc(file.name)}</b> has headings but no rows yet.</div>`; return; }
+    if(state.rows.length){
+      pendingImport={res,name:file.name};
+      box.innerHTML=`<div class="notice"><p style="margin:0 0 10px">Found ${fmt(res.rows.length)} rows in <b>${esc(file.name)}</b>. You already have ${fmt(state.rows.length)} rows on this page.</p>
+        <div class="choice"><button class="btn primary" id="impReplace" type="button">Replace them with this file</button><button class="btn" id="impAdd" type="button">Add to them</button><button class="btn" id="impCancel" type="button">Cancel</button></div></div>`;
+      $("#impReplace").onclick=()=>applyImport("replace"); $("#impAdd").onclick=()=>applyImport("add"); $("#impCancel").onclick=()=>{pendingImport=null;box.hidden=true;};
+    } else { pendingImport={res,name:file.name}; applyImport("replace"); }
+  }catch(e){ box.innerHTML=`<div class="notice err">Couldn't read <b>${esc(file.name)}</b>. Save it as .xlsx or .csv and try again.</div>`; }
+}
+function applyImport(mode){
+  const {res,name}=pendingImport; pendingImport=null;
+  const rows=res.rows.map(v=>({id:newId(),v,issues:[],fixes:[]}));
+  if(mode==="replace"){ state.rows=rows; state.fileName=name; } else { state.rows=state.rows.concat(rows); state.fileName=state.fileName?state.fileName+" + "+name:name; }
+  validateAll(); state.page=0; state.filter="all"; syncFilter();
+  const fixed=rows.filter(r=>r.fixes.length).length, errs=rows.filter(r=>statusOf(r)==="err").length, warns=rows.filter(r=>statusOf(r)==="warn").length;
+  const miss=res.missing.filter(k=>COLS.find(c=>c.k===k).req);
+  let html=`<div class="notice ${errs?"warn":"ok"}">Read <b>${fmt(rows.length)}</b> rows from the “${esc(res.sheet)}” sheet of <b>${esc(name)}</b>. `;
+  html+= errs||warns ? `${fmt(errs)} ${errs===1?"row has":"rows have"} errors to fix and ${fmt(warns)} ${warns===1?"needs":"need"} a second look. ` : `No problems found. `;
+  if(fixed) html+=`${fmt(fixed)} ${fixed===1?"value was":"values were"} tidied automatically (shown in blue). `;
+  if(miss.length) html+=`<br>Required columns not found in the file: ${miss.map(k=>"<b>"+esc(LABEL[k])+"</b>").join(", ")}. You can fill them in below.`;
+  if(res.unknown.length) html+=`<br>Columns ignored: ${res.unknown.map(esc).join(", ")}.`;
+  $("#importMsg").innerHTML=html+"</div>";
+  renderAll(); saveDraft();
+  if(errs){ setFilter("issues"); }
+}
+
+/* ---------- rendering: summary & grid ---------- */
+function summarize(rows){
+  const wards=new Set(), months=new Set(); let hh=0, minM="", maxM="";
+  const cov={};
+  for(const r of rows){ const v=r.v||r;
+    if(WARD_MAP.has(norm(v.ward))) wards.add(v.ward);
+    if(/^\d{4}-\d{2}$/.test(v.month)){ months.add(v.month); if(!minM||v.month<minM) minM=v.month; if(!maxM||v.month>maxM) maxM=v.month; }
+    const h=parseCount(v.hh); if(h!==null) hh+=h;
+    if(WARD_MAP.has(norm(v.ward))&&/^\d{4}-\d{2}$/.test(v.month)&&v.month>="2024-01"&&v.month<=CUR){
+      const i=idxOf(v.month), w=WARD_MAP.get(norm(v.ward)); cov[w]=cov[w]||{}; const val=(v.amount==="0")?0:1; cov[w][i]=Math.max(cov[w][i]??0,val); }
+  }
+  return {wards:wards.size,months:months.size,hh,minM,maxM,cov};
+}
+function renderTiles(){
+  const s=summarize(state.rows);
+  const errs=state.rows.filter(r=>statusOf(r)==="err").length, warns=state.rows.filter(r=>statusOf(r)==="warn").length;
+  $("#tiles").innerHTML=[
+    ["Rows",fmt(state.rows.length),""],
+    ["Wards covered",fmt(s.wards)+` <small>of 125</small>`,""],
+    ["Months covered",fmt(s.months)+` <small>of ${MONTHS.length}</small>`,""],
+    ["Households served",fmt(s.hh),""],
+    ["Rows with errors",fmt(errs),errs?"bad":(state.rows.length?"good":"")],
+    ["Rows to double-check",fmt(warns),warns?"meh":""],
+  ].map(([k,v,c])=>`<div class="tile ${c}"><div class="k">${k}</div><div class="v">${v}</div></div>`).join("");
+  $("#btnDropErr").hidden=!errs;
+  updateSubmitHint();
+}
+function filtered(){ const f=state.filter; return state.rows.filter(r=>{ const s=statusOf(r); return f==="all"||(f==="errors"?s==="err":(s==="err"||s==="warn")); }); }
+function statusHTML(r){
+  const s=statusOf(r);
+  const all=[...r.issues.filter(i=>i.lvl==="err"),...r.issues.filter(i=>i.lvl==="warn"),...(r.fixes||[])];
+  const label={err:"Error",warn:"Check",fix:"Tidied",ok:"OK"}[s];
+  const first=all[0]; const more=all.length>1?` <span class="muted">(+${all.length-1} more)</span>`:"";
+  const title=all.map(i=>"• "+i.msg).join("\n");
+  return `<span title="${esc(title)}"><span class="pill ${s}">${label}</span>${first?`<span class="msg">${esc(first.msg)}${more}</span>`:""}</span>`;
+}
+function cellClass(r,k){ if(r.issues.some(i=>i.k===k&&i.lvl==="err")) return "c-err"; if(r.issues.some(i=>i.k===k&&i.lvl==="warn")) return "c-warn"; if((r.fixes||[]).some(f=>f.k===k)) return "c-fix"; return ""; }
+function rowHTML(r,n){
+  return `<tr data-id="${r.id}"><td class="num">${n}</td><td class="stat">${statusHTML(r)}</td>`+
+    COLS.map(c=>`<td class="k-${c.k} ${cellClass(r,c.k)}"><input id="c-${r.id}-${c.k}" data-k="${c.k}" value="${esc(r.v[c.k])}"${c.list?` list="${c.list}"`:""} aria-label="${esc(c.label)}, row ${n}" autocomplete="off"></td>`).join("")+
+    `<td><button class="del" type="button" data-del="${r.id}" aria-label="Delete row ${n}">×</button></td></tr>`;
+}
+function renderGrid(){
+  const list=filtered(); const pages=Math.max(1,Math.ceil(list.length/PAGE));
+  if(state.page>=pages) state.page=pages-1;
+  const start=state.page*PAGE, slice=list.slice(start,start+PAGE);
+  const pos=new Map(state.rows.map((r,i)=>[r.id,i+1]));
+  const body=$("#gridBody");
+  if(!state.rows.length) body.innerHTML=`<tr><td colspan="13" class="empty">No rows yet. Upload your filled-in template above, or add a row by hand.</td></tr>`;
+  else if(!slice.length) body.innerHTML=`<tr><td colspan="13" class="empty">No rows match this filter. Everything here looks fine.</td></tr>`;
+  else body.innerHTML=slice.map(r=>rowHTML(r,pos.get(r.id))).join("");
+  $("#gridCount").textContent= state.rows.length ? (state.filter==="all"?`${fmt(state.rows.length)} rows`:`${fmt(list.length)} of ${fmt(state.rows.length)} rows`) : "";
+  $("#pager").innerHTML = list.length>PAGE ? `<span>Rows ${fmt(start+1)}–${fmt(Math.min(start+PAGE,list.length))} of ${fmt(list.length)}</span>
+    <div class="row"><button class="btn small" type="button" data-pg="-1" ${state.page===0?"disabled":""}>Previous</button><span>Page ${state.page+1} of ${pages}</span><button class="btn small" type="button" data-pg="1" ${state.page>=pages-1?"disabled":""}>Next</button></div>` : "";
+}
+function updateRowDom(r){
+  const tr=$("#gridBody").querySelector(`tr[data-id="${r.id}"]`); if(!tr) return;
+  tr.querySelector("td.stat").innerHTML=statusHTML(r);
+  tr.querySelectorAll("input[data-k]").forEach(inp=>{ const k=inp.dataset.k; if(document.activeElement!==inp&&inp.value!==r.v[k]) inp.value=r.v[k]; inp.parentElement.className=`k-${k} ${cellClass(r,k)}`; });
+}
+function renderAll(){ renderTiles(); renderGrid(); }
+function syncFilter(){ document.querySelectorAll("[data-filter]").forEach(b=>b.setAttribute("aria-pressed",String(b.dataset.filter===state.filter))); }
+function setFilter(f){ state.filter=f; state.page=0; syncFilter(); renderGrid(); }
+
+$("#gridBody").addEventListener("change",e=>{
+  const inp=e.target.closest("input[data-k]"); if(!inp) return;
+  const r=state.rows.find(x=>x.id===inp.closest("tr").dataset.id); if(!r) return;
+  const k=inp.dataset.k; r.v[k]=inp.value; r.fixes=(r.fixes||[]).filter(f=>f.k!==k);
+  validateRow(r); recomputeDupes();
+  inp.value=r.v[k];
+  $("#gridBody").querySelectorAll("tr[data-id]").forEach(tr=>{ const x=state.rows.find(y=>y.id===tr.dataset.id); if(x) updateRowDom(x); });
+  renderTiles(); saveDraft();
+});
+$("#gridBody").addEventListener("click",e=>{
+  const b=e.target.closest("[data-del]"); if(!b) return;
+  state.rows=state.rows.filter(r=>r.id!==b.dataset.del); recomputeDupes(); renderAll(); saveDraft();
+});
+$("#pager").addEventListener("click",e=>{ const b=e.target.closest("[data-pg]"); if(!b) return; state.page+=Number(b.dataset.pg); renderGrid(); $("#gridScroll").scrollIntoView({block:"nearest"}); });
+document.querySelectorAll("[data-filter]").forEach(b=>b.addEventListener("click",()=>setFilter(b.dataset.filter)));
+$("#btnAddRow").addEventListener("click",()=>{
+  const last=state.rows[state.rows.length-1];
+  const v=Object.fromEntries(KEYS.map(k=>[k,""])); if(last){ v.ward=last.v.ward; v.county=last.v.county; }
+  const r={id:newId(),v,issues:[],fixes:[]}; validateRow(r); state.rows.push(r); recomputeDupes();
+  state.filter="all"; syncFilter(); state.page=Math.floor((state.rows.length-1)/PAGE); renderAll(); saveDraft();
+  const el=document.getElementById(`c-${r.id}-${last?"month":"ward"}`); if(el){ el.focus(); el.scrollIntoView({block:"center"}); }
+});
+$("#btnClear").addEventListener("click",()=>{ if(!state.rows.length) return; $("#clearN").textContent=fmt(state.rows.length); $("#clearConfirm").hidden=false; });
+$("#btnClearNo").addEventListener("click",()=>$("#clearConfirm").hidden=true);
+$("#btnClearYes").addEventListener("click",()=>{ state.rows=[]; state.fileName=""; $("#clearConfirm").hidden=true; $("#importMsg").hidden=true; renderAll(); saveDraft(); toast("All rows removed from this page"); });
+$("#btnDropErr").addEventListener("click",()=>{ const n=state.rows.filter(r=>statusOf(r)==="err").length; state.rows=state.rows.filter(r=>statusOf(r)!=="err"); recomputeDupes(); renderAll(); saveDraft(); toast(`Removed ${fmt(n)} rows with errors`); });
+
+const fileInp=$("#file"); fileInp.addEventListener("change",()=>{ if(fileInp.files[0]) handleFile(fileInp.files[0]); fileInp.value=""; });
+const drop=$("#drop");
+["dragenter","dragover"].forEach(ev=>drop.addEventListener(ev,e=>{e.preventDefault();drop.classList.add("over");}));
+["dragleave","drop"].forEach(ev=>drop.addEventListener(ev,e=>{e.preventDefault();drop.classList.remove("over");}));
+drop.addEventListener("drop",e=>{ const f=e.dataTransfer?.files?.[0]; if(f) handleFile(f); });
+["fOrg","fName","fEmail","fMsg"].forEach(id=>$("#"+id).addEventListener("input",()=>{saveDraft();updateSubmitHint();}));
+
+/* ---------- checker: download the checked file, then upload it to Box ---------- */
+const CHECKER_VERSION="2026-10-22";
+const boxUrl=()=> (typeof window.BOX_FILE_REQUEST_URL==="string" && /^https:\/\/[^\s"]+$/.test(window.BOX_FILE_REQUEST_URL)) ? window.BOX_FILE_REQUEST_URL : "";
+function updateSubmitHint(){
+  const errs=state.rows.filter(r=>statusOf(r)==="err").length; let hint="";
+  if(!state.rows.length) hint="Add some rows first.";
+  else if(errs) hint=`Fix or remove the ${fmt(errs)} ${errs===1?"row":"rows"} with errors first.`;
+  else if(!$("#fOrg").value.trim()) hint="Enter your organization's name in step 2.";
+  $("#dlHint").textContent=hint;
+  $("#btnDownloadChecked").disabled=!!hint;
+}
+function renderBox(){
+  const u=boxUrl(), el=$("#boxRow");
+  if(u){
+    el.innerHTML=`<a class="btn primary" id="boxLink" href="${esc(u)}" target="_blank" rel="noopener noreferrer">Open the Cornell Box upload page</a><span class="muted" style="font-size:13px">Opens in a new tab.</span>`;
+  } else {
+    el.innerHTML=`<div class="notice warn" style="flex:1">The upload link hasn't been set up yet. Please email your checked file to <span class="code">sc2875@cornell.edu</span>.</div>`;
+  }
+}
+function checkedFileName(){
+  return `drought_relief_${slug($("#fOrg").value.trim())}_${new Date().toISOString().slice(0,10)}.xlsx`;
+}
+$("#btnDownloadChecked").addEventListener("click",()=>{
+  updateSubmitHint(); if($("#btnDownloadChecked").disabled) return;
+  const rows=state.rows, s=summarize(rows);
+  const warns=rows.filter(r=>statusOf(r)==="warn").length;
+  const wb=XLSX.utils.book_new();
+
+  // Data: same layout as the template's Data tab (banner row, heading row, records from row 3)
+  const banner=COLS.map((c,i)=>i===0?"REQUIRED":(i===7?"OPTIONAL — please complete if the information is available":""));
+  const aoa=[banner,COLS.map(c=>c.label)];
+  for(const r of rows){ const v=r.v; const amt=parseAmount(v.amount), hh=parseCount(v.hh);
+    aoa.push([v.ward,v.county,v.month,v.aid,(typeof amt==="number"?amt:v.amount),v.unit,(hh!==null?hh:v.hh),v.agency,v.pay,v.notes]); }
+  const ws=XLSX.utils.aoa_to_sheet(aoa);
+  for(let i=0;i<rows.length;i++){ const ref=XLSX.utils.encode_cell({r:i+2,c:2}); if(ws[ref]){ ws[ref].t="s"; ws[ref].z="@"; } }
+  ws["!cols"]=COLS.map(c=>({wch:c.k==="notes"?50:Math.max(14,c.label.length+2)}));
+  XLSX.utils.book_append_sheet(wb,ws,"Data");
+
+  // Submission info: who sent it and what the checker found
+  const info=[["Field","Value"],
+    ["Organization",$("#fOrg").value.trim()],["Contact person",$("#fName").value.trim()],["Contact email",$("#fEmail").value.trim()],
+    ["Message to the research team",$("#fMsg").value.trim()],["Source file(s)",state.fileName||"Entered on the checker page"],
+    ["Checked on (UTC)",new Date().toISOString().slice(0,19)+"Z"],["Checker version",CHECKER_VERSION],
+    ["Rows",rows.length],["Wards covered (of 125)",s.wards],["Months covered",s.months],["First month",s.minM],["Last month",s.maxM],
+    ["Total households served",s.hh],["Rows flagged to double-check",warns],["Rows with errors","0"]];
+  const wi=XLSX.utils.aoa_to_sheet(info); wi["!cols"]=[{wch:30},{wch:70}];
+  XLSX.utils.book_append_sheet(wb,wi,"Submission info");
+
+  // Checker notes: every warning and automatic correction, by Data-sheet row
+  const notes=[["Data row","Field","Type","Note"]];
+  rows.forEach((r,i)=>{
+    for(const it of r.issues) notes.push([i+3,it.k==="_dup"?"(row)":LABEL[it.k],it.lvl==="warn"?"Double-check":"Error",it.msg]);
+    for(const f of (r.fixes||[])) notes.push([i+3,LABEL[f.k],"Corrected automatically",f.msg]);
+  });
+  const wn=XLSX.utils.aoa_to_sheet(notes); wn["!cols"]=[{wch:10},{wch:26},{wch:24},{wch:90}];
+  XLSX.utils.book_append_sheet(wb,wn,"Checker notes");
+
+  const name=checkedFileName();
+  XLSX.writeFile(wb,name);
+  $("#dlResult").hidden=false;
+  $("#dlResult").innerHTML=`<div class="notice ok">Saved <b>${esc(name)}</b> to your downloads. Now upload that file in step 4.</div>`;
+  $("#step4").scrollIntoView({behavior:"smooth",block:"nearest"});
+});
+renderBox();
+
+/* ---------- coverage ---------- */
+function mergeCov(covs){ const m={}; for(const c of covs) for(const [w,o] of Object.entries(c||{})){ m[w]=m[w]||{}; for(const [i,v] of Object.entries(o)){ m[w][i]=Math.max(m[w][i]??0,v); } } return m; }
+function covHTML(covs){
+  const m=mergeCov(covs); const N=MONTHS.length;
+  const wardsWith=Object.keys(m).length;
+  let h=`<div class="legend"><span><i style="background:var(--cov-aid)"></i>Aid reported</span><span><i style="background:var(--cov-zero)"></i>Reported: no aid that month</span><span><i style="background:var(--cov-none);border:1px solid var(--line)"></i>No record</span><span>${fmt(wardsWith)} of 125 wards have at least one month</span></div>`;
+  h+=`<div class="covwrap"><div class="cov" style="grid-template-columns:170px repeat(${N},14px)"><div class="hd corner"></div>`;
+  for(let i=0;i<N;i+=12){ const span=Math.min(12,N-i); h+=`<div class="hd" style="grid-column:span ${span};border-left:1px solid var(--line);padding-left:3px">${MONTHS[i].slice(0,4)}</div>`; }
+  for(const w of WARDS){ const o=m[w]||{}; h+=`<div class="wl" title="${esc(w)}">${esc(w)}</div>`;
+    for(let i=0;i<N;i++){ const v=o[i]; h+=`<div class="c ${v===1?"a":v===0?"z":""}" title="${esc(w)} · ${MONTHS[i]}${v===1?" · aid reported":v===0?" · no aid":" · no record"}"></div>`; } }
+  return h+`</div></div>`;
+}
+
+/* ---------- small helpers ---------- */
+const slug=s=>(String(s||"org").toLowerCase().replace(/[^a-z0-9]+/g,"_").replace(/^_|_$/g,"").slice(0,40)||"org");
+$("#btnTemplate").addEventListener("click",()=>{ window.location.href="drought_relief_disbursement_template.xlsx"; });
+$("#btnCopyEmail").addEventListener("click",async()=>{
+  try{ await navigator.clipboard.writeText("sc2875@cornell.edu"); toast("Email address copied"); }
+  catch(e){ const r=document.createRange(); r.selectNodeContents($("#contactEmail")); const s=getSelection(); s.removeAllRanges(); s.addRange(r); toast("Press Ctrl+C or ⌘C to copy"); }
+});
+
+/* ---------- tabs ---------- */
+function showTab(name){
+  document.querySelectorAll(".tab").forEach(t=>t.setAttribute("aria-selected",String(t.dataset.tab===name)));
+  ["submit","guide"].forEach(n=>$("#tab-"+n).hidden=n!==name);
+}
+document.querySelectorAll(".tab").forEach(t=>t.addEventListener("click",()=>showTab(t.dataset.tab)));
+const h0=(location.hash||"").slice(1); if(["submit","guide"].includes(h0)) showTab(h0);
+
+/* ---------- boot ---------- */
+loadDraft(); validateAll(); renderAll();
+</script>
+</body>
+</html>

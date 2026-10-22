@@ -1,0 +1,3 @@
+// Paste your Cornell Box "File Request" link between the quotes.
+// Box: open the folder → ⋯ (More options) → File Request → Copy link. It looks like https://cornell.app.box.com/f/abc123...
+window.BOX_FILE_REQUEST_URL = "https://cornell.app.box.com/f/38477b1182184c9289ddc3974b56ed7e";
