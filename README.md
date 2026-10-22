@@ -34,6 +34,7 @@ checker page (GitHub Pages)                File Request link                    
 | `docs/.nojekyll` | GitHub Pages | Tells GitHub to serve the files as they are |
 | `combine/combine.py` | Your computer | Reads the Box folder, re-checks every row, writes the combined dataset |
 | `combine/requirements.txt` | Your computer | `openpyxl`, the only package the script needs |
+| `ward_county.csv` | Reference | The 125 wards and their county, as used by the template, page and script |
 
 ---
 
@@ -121,7 +122,7 @@ python combine.py "/path/to/Drought relief submissions" --out combined_output --
 | `run_log.txt` | – | Files read, skipped or not used, and totals |
 
 Row columns: `source_file, organization, file_row` (the row number in the partner's
-Excel file, so you can point them to it), then `ward, county, month, aid_type, amount,
+Excel file, so you can point them to it), then `county, ward, month, aid_type, amount,
 amount_unit, households, agency, payment_form, notes, status, issues`.
 
 **Duplicates are flagged, never dropped.** A row gets a warning if the same ward + month
@@ -144,7 +145,9 @@ distribution, a double count you'll want to resolve.
 | Households not a whole number | error |
 | Notes over 4,000 characters | error |
 | "No disbursement this month" with an empty amount | amount set to 0 |
-| Ward not one of the 125 / county not one of the 47 | warning |
+| County not one of the 22 counties in scope | error |
+| Ward not one of the 125 wards in scope | warning |
+| Ward belongs to a different county than the one entered | warning |
 | Month before 2024-01 | warning |
 | "No disbursement" with a non-zero amount | warning |
 | Duplicate ward + month + aid + agency | warning |
@@ -153,10 +156,30 @@ Ward and county names are matched ignoring case, spaces and punctuation, then wr
 the template's spelling. Every automatic correction is listed: in the checked file's
 **Checker notes** sheet, and in the `issues` column as `FIXED: …`.
 
+## Counties and wards
+
+The template, page and script use the **125 wards** in `ward_county.csv`, in **22 ASAL
+counties**. Tharaka Nithi has none of these wards, so it isn't offered. Counties come
+from NDMA's ward list (June 2026), with two exceptions to keep in mind:
+
+| Ward | County used | Note |
+|---|---|---|
+| Churo/Amaya | Baringo | Not in NDMA's June 2026 list (last surveyed Aug 2025); please confirm |
+| Kapedo/Napeitom | Turkana | Not in NDMA's June 2026 list (last surveyed Aug 2025); please confirm |
+| Kapenguria | West Pokot | Not in NDMA's June 2026 list (last surveyed Aug 2025); please confirm |
+| Evurore | Embu | NDMA lists it under both Embu and Tharaka Nithi; Embu used |
+
+To change the list, edit `ward_county.csv` and ask for the template, page and script to be
+regenerated from it, so all three stay identical.
+
+In the template, the County column comes first. Once a county is chosen, the Ward
+drop-down shows only that county's wards. This works in Excel and LibreOffice; Google
+Sheets ignores filtered drop-downs, but the checker page catches any mismatch.
+
 ## The checked file partners upload
 
 | Sheet | Contents |
 |---|---|
-| Data | Same layout as the template's Data tab, with corrected values |
+| Data | Same layout as the template's Data tab (County first), with corrected values |
 | Submission info | Organization, contact, message, source file, date checked, checker version, counts |
 | Checker notes | Each warning and automatic correction, by row |

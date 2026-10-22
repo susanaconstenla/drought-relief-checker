@@ -211,7 +211,7 @@ code,.code{font-family:var(--f-mono);font-size:.92em;background:var(--surface-2)
         <table class="grid">
           <thead>
             <tr class="band"><th colspan="2" style="background:var(--surface-2)"></th><th class="reqb" colspan="7">Required</th><th class="optb" colspan="3">Optional · please complete if available</th><th style="background:var(--surface-2)"></th></tr>
-            <tr><th>#</th><th>Check</th><th>Ward</th><th>County</th><th>Month (YYYY-MM)</th><th>Type of aid distributed</th><th>Amount disbursed</th><th>Currency / unit</th><th>Total households served</th><th>Distributing agency</th><th>Form of payment</th><th>Notes</th><th><span class="sr">Delete</span></th></tr>
+            <tr><th>#</th><th>Check</th><th>County</th><th>Ward</th><th>Month (YYYY-MM)</th><th>Type of aid distributed</th><th>Amount disbursed</th><th>Currency / unit</th><th>Total households served</th><th>Distributing agency</th><th>Form of payment</th><th>Notes</th><th><span class="sr">Delete</span></th></tr>
           </thead>
           <tbody id="gridBody"></tbody>
         </table>
@@ -250,13 +250,13 @@ code,.code{font-family:var(--f-mono);font-size:.92em;background:var(--surface-2)
       <h2>What we need</h2>
       <p class="sub">Records of drought relief disbursed in each of the 125 listed wards, for every month from January 2024 to the present, and by implementing organization where possible. The ward-month structure is essential: figures added up to county level or to a full year cannot be used in the analysis.</p>
       <dl>
-        <dt>Required vs optional</dt><dd>Ward, County, Month, Type of aid, Amount, Currency / unit and Households served are needed for every row. Distributing agency, Form of payment and Notes are welcome whenever the information is on hand, but a row is still usable without them.</dd>
+        <dt>Required vs optional</dt><dd>County, Ward, Month, Type of aid, Amount, Currency / unit and Households served are needed for every row. Distributing agency, Form of payment and Notes are welcome whenever the information is on hand, but a row is still usable without them.</dd>
         <dt>One row per aid type and organization</dt><dd>If a ward received two kinds of assistance in the same month (for example a cash transfer and a food ration), enter two separate rows. If the same type of aid was distributed by different organizations, enter one row for each. If that is not possible, enter the total and explain in Notes.</dd>
         <dt>Months with no aid</dt><dd>If no aid was given in a month, record it with amount <span class="code">0</span> (Type of aid: “No disbursement this month”). This tells a month with no aid apart from a missing record.</dd>
-        <dt>Amounts</dt><dd>Enter the total disbursed in that ward-month as a plain number, with no currency symbol or thousands separator, and give the currency or physical unit in the next column. For in-kind aid, enter <span class="code">not applicable</span>; if an estimated monetary value is available, add it in Notes. The portal removes separators like <span class="code">3,000.00</span> for you.</dd>
+        <dt>Amounts</dt><dd>Enter the total disbursed in that ward-month as a plain number, with no currency symbol or thousands separator, and give the currency in the next column: <span class="code">KES</span> or <span class="code">USD</span>. For in-kind aid, enter <span class="code">not applicable</span> as the amount and choose <span class="code">Not applicable (in kind)</span> as the unit; if an estimated monetary value is available, add it in Notes. The portal removes separators like <span class="code">3,000.00</span> for you.</dd>
         <dt>Households served</dt><dd>The number of distinct households that received the aid in that ward-month. If only counts of individuals exist, enter those and say so in Notes.</dd>
         <dt>Form of payment</dt><dd>The schedule of the transfer. For example, KES 3,000 per month for two months is “Monthly instalments”, with the per-instalment detail in Notes.</dd>
-        <dt>Ward list</dt><dd>All 125 wards in scope are offered as suggestions in the Ward column. Rows for other wards are flagged so you can check the spelling.</dd>
+        <dt>Ward list</dt><dd>Choose the county first: the Ward column then suggests only that county's wards. The 125 wards in scope are in 22 ASAL counties. Rows for other wards, or a ward entered under the wrong county, are flagged so you can check them.</dd>
         <dt>Partial data is welcome</dt><dd>If some wards or months are not feasible for your team, submit what you have. Get in touch and we can try to narrow the list.</dd>
       </dl>
     </div>
@@ -265,12 +265,12 @@ code,.code{font-family:var(--f-mono);font-size:.92em;background:var(--surface-2)
       <p class="sub">For illustration only. These rows are not part of anyone's data.</p>
       <div class="scroll">
         <table class="list" style="min-width:900px">
-          <thead><tr><th>Ward</th><th>County</th><th>Month</th><th>Type of aid</th><th class="n">Amount</th><th>Unit</th><th class="n">Households</th><th>Agency</th><th>Form of payment</th><th>Notes</th></tr></thead>
+          <thead><tr><th>County</th><th>Ward</th><th>Month</th><th>Type of aid</th><th class="n">Amount</th><th>Unit</th><th class="n">Households</th><th>Agency</th><th>Form of payment</th><th>Notes</th></tr></thead>
           <tbody>
-            <tr><td>Loiyangalani</td><td>Marsabit</td><td class="mono">2024-03</td><td>Cash transfer</td><td class="n">3000</td><td>KES</td><td class="n">412</td><td>NDMA</td><td>Monthly instalments</td><td>KES 3,000 per household per month, two months</td></tr>
-            <tr><td>Loiyangalani</td><td>Marsabit</td><td class="mono">2024-03</td><td>Cash transfer</td><td class="n">1000</td><td>KES</td><td class="n">100</td><td>WFP</td><td>Monthly instalments</td><td>KES 1,000 per household per month, one month</td></tr>
-            <tr><td>Loiyangalani</td><td>Marsabit</td><td class="mono">2024-03</td><td>Food / in-kind ration</td><td class="n">not applicable</td><td>not applicable</td><td class="n">100</td><td>NDMA</td><td>Lump sum, one-off</td><td>In-kind food relief, approximate total value in the ward KES 10,000</td></tr>
-            <tr><td>Loiyangalani</td><td>Marsabit</td><td class="mono">2024-04</td><td>No disbursement this month</td><td class="n">0</td><td></td><td class="n">0</td><td></td><td></td><td></td></tr>
+            <tr><td>Marsabit</td><td>Loiyangalani</td><td class="mono">2024-03</td><td>Cash transfer</td><td class="n">3000</td><td>KES</td><td class="n">412</td><td>NDMA</td><td>Monthly instalments</td><td>KES 3,000 per household per month, two months</td></tr>
+            <tr><td>Marsabit</td><td>Loiyangalani</td><td class="mono">2024-03</td><td>Cash transfer</td><td class="n">1000</td><td>KES</td><td class="n">100</td><td>WFP</td><td>Monthly instalments</td><td>KES 1,000 per household per month, one month</td></tr>
+            <tr><td>Marsabit</td><td>Loiyangalani</td><td class="mono">2024-03</td><td>Food / in-kind ration</td><td class="n">not applicable</td><td>Not applicable (in kind)</td><td class="n">100</td><td>NDMA</td><td>Lump sum, one-off</td><td>In-kind food relief, approximate total value in the ward KES 10,000</td></tr>
+            <tr><td>Marsabit</td><td>Loiyangalani</td><td class="mono">2024-04</td><td>No disbursement this month</td><td class="n">0</td><td></td><td class="n">0</td><td></td><td></td><td></td></tr>
           </tbody>
         </table>
       </div>
@@ -289,15 +289,28 @@ code,.code{font-family:var(--f-mono);font-size:.92em;background:var(--surface-2)
 
 <script>
 const WARDS = ["Abakaile", "Adu", "Akithi", "Bahari", "Bamba", "Bangale", "Barwago", "Bulla Pesa", "Burat", "Bute", "Butiye", "Chala", "Chari", "Chepareria", "Cherab", "Chewani", "Churo/Amaya", "Dalalekutuk", "Dandu", "Dela", "Evurore", "Ewuaso O o Nkidong'i/M", "Faza", "Garsen Central", "Golbo", "Hadado/Adhibohol", "Iftin", "Ijara", "Ikutha", "Ilchamus", "Ilkerin", "Iloodokilani", "Imbirikani/Eselenkei", "Jaribuni", "Kaeris", "Kakuma", "Kakuyuni", "Kalaliyo", "Kangeta", "Kanyangi", "Kapchoki", "Kapedo/Napeitom", "Kapenguria", "Kaputei North", "Karare", "Kasemani", "Kasigau", "Kasikeu/Kiou", "Katilu", "Kauwi", "Kiambere", "Kilgoris Central", "Kinna", "Kipini East", "Kithungo/Kitundu", "Kitise/Kithuki", "Kiunga", "Kivou", "Kolowa", "Korr/Ngurunit", "Kutulo", "Lagboghol South", "Lake Zone", "Liboi", "Loiyangalani", "Lokichar", "Maalamin", "Madogo", "Magadi", "Maji Moto/Naroosura", "Malalani/Endau", "Masol", "Masongaleni", "Masumba/Nguu", "Mboghoni", "Merigi", "Migwani", "Mikinduri", "Mosiro (Narok East)", "Mugunda", "Mukaa", "Mukogodo East", "Mukogodo West", "Mukutani", "Mwanamwinga", "Mwarakaya", "Mwawesa", "Mwereni", "Nachola", "Nanighi", "Ndavaya", "Ndoto", "Ngobit", "Ngolia", "Nkareta", "Nuu", "Oldo-nyiro", "Rhamu Dimtu", "Ribikwo", "Riwo", "Rombo", "Sagante/Jaldessa", "Saimo/Kipsaraman", "Saka", "Sericho", "Shimbir Fatuma", "Siana", "Sosiani", "Suguta Marmar", "Tangulbei/Korossi", "Tarbaj", "Thegu River", "Tseikuru", "Turbi", "Turkwel", "Ukia", "Uran", "Waa", "Wamba North", "Wamba West", "Waranqara", "Waso", "Wayu", "Wei Wei", "Witu"];
-const COUNTIES = ["Baringo", "Bomet", "Bungoma", "Busia", "Elgeyo-Marakwet", "Embu", "Garissa", "Homa Bay", "Isiolo", "Kajiado", "Kakamega", "Kericho", "Kiambu", "Kilifi", "Kirinyaga", "Kisii", "Kisumu", "Kitui", "Kwale", "Laikipia", "Lamu", "Machakos", "Makueni", "Mandera", "Marsabit", "Meru", "Migori", "Mombasa", "Murang'a", "Nairobi", "Nakuru", "Nandi", "Narok", "Nyamira", "Nyandarua", "Nyeri", "Samburu", "Siaya", "Taita-Taveta", "Tana River", "Tharaka-Nithi", "Trans Nzoia", "Turkana", "Uasin Gishu", "Vihiga", "Wajir", "West Pokot"];
+const COUNTIES = ["Baringo", "Embu", "Garissa", "Isiolo", "Kajiado", "Kilifi", "Kitui", "Kwale", "Laikipia", "Lamu", "Makueni", "Mandera", "Marsabit", "Meru", "Narok", "Nyeri", "Samburu", "Taita Taveta", "Tana River", "Turkana", "Wajir", "West Pokot"];
+const WARD_COUNTY = {"Churo/Amaya": "Baringo", "Ilchamus": "Baringo", "Kolowa": "Baringo", "Mukutani": "Baringo", "Ribikwo": "Baringo", "Saimo/Kipsaraman": "Baringo", "Tangulbei/Korossi": "Baringo", "Evurore": "Embu", "Kiambere": "Embu", "Abakaile": "Garissa", "Iftin": "Garissa", "Ijara": "Garissa", "Liboi": "Garissa", "Maalamin": "Garissa", "Nanighi": "Garissa", "Saka": "Garissa", "Bulla Pesa": "Isiolo", "Burat": "Isiolo", "Chari": "Isiolo", "Cherab": "Isiolo", "Kinna": "Isiolo", "Oldo-nyiro": "Isiolo", "Sericho": "Isiolo", "Dalalekutuk": "Kajiado", "Ewuaso O o Nkidong'i/M": "Kajiado", "Iloodokilani": "Kajiado", "Imbirikani/Eselenkei": "Kajiado", "Kaputei North": "Kajiado", "Magadi": "Kajiado", "Rombo": "Kajiado", "Adu": "Kilifi", "Bamba": "Kilifi", "Jaribuni": "Kilifi", "Kakuyuni": "Kilifi", "Mwanamwinga": "Kilifi", "Mwarakaya": "Kilifi", "Mwawesa": "Kilifi", "Ikutha": "Kitui", "Kanyangi": "Kitui", "Kauwi": "Kitui", "Kivou": "Kitui", "Malalani/Endau": "Kitui", "Migwani": "Kitui", "Nuu": "Kitui", "Tseikuru": "Kitui", "Kasemani": "Kwale", "Mwereni": "Kwale", "Ndavaya": "Kwale", "Waa": "Kwale", "Mukogodo East": "Laikipia", "Mukogodo West": "Laikipia", "Ngobit": "Laikipia", "Sosiani": "Laikipia", "Bahari": "Lamu", "Faza": "Lamu", "Kiunga": "Lamu", "Witu": "Lamu", "Kasikeu/Kiou": "Makueni", "Kithungo/Kitundu": "Makueni", "Kitise/Kithuki": "Makueni", "Masongaleni": "Makueni", "Masumba/Nguu": "Makueni", "Mukaa": "Makueni", "Ukia": "Makueni", "Dandu": "Mandera", "Kalaliyo": "Mandera", "Kutulo": "Mandera", "Rhamu Dimtu": "Mandera", "Shimbir Fatuma": "Mandera", "Waranqara": "Mandera", "Butiye": "Marsabit", "Golbo": "Marsabit", "Karare": "Marsabit", "Korr/Ngurunit": "Marsabit", "Loiyangalani": "Marsabit", "Merigi": "Marsabit", "Sagante/Jaldessa": "Marsabit", "Turbi": "Marsabit", "Uran": "Marsabit", "Akithi": "Meru", "Kangeta": "Meru", "Mikinduri": "Meru", "Ilkerin": "Narok", "Kilgoris Central": "Narok", "Maji Moto/Naroosura": "Narok", "Mosiro (Narok East)": "Narok", "Nkareta": "Narok", "Siana": "Narok", "Mugunda": "Nyeri", "Thegu River": "Nyeri", "Nachola": "Samburu", "Ndoto": "Samburu", "Suguta Marmar": "Samburu", "Wamba North": "Samburu", "Wamba West": "Samburu", "Waso": "Samburu", "Chala": "Taita Taveta", "Kasigau": "Taita Taveta", "Mboghoni": "Taita Taveta", "Ngolia": "Taita Taveta", "Bangale": "Tana River", "Chewani": "Tana River", "Garsen Central": "Tana River", "Kipini East": "Tana River", "Madogo": "Tana River", "Wayu": "Tana River", "Kaeris": "Turkana", "Kakuma": "Turkana", "Kapedo/Napeitom": "Turkana", "Katilu": "Turkana", "Lake Zone": "Turkana", "Lokichar": "Turkana", "Turkwel": "Turkana", "Barwago": "Wajir", "Bute": "Wajir", "Dela": "Wajir", "Hadado/Adhibohol": "Wajir", "Lagboghol South": "Wajir", "Tarbaj": "Wajir", "Chepareria": "West Pokot", "Kapchoki": "West Pokot", "Kapenguria": "West Pokot", "Masol": "West Pokot", "Riwo": "West Pokot", "Wei Wei": "West Pokot"};
 const AID_TYPES = ["Cash transfer", "Food / in-kind ration", "Food voucher", "Livestock feed / supplement", "Livestock offtake payment", "Water trucking", "Nutrition supplement (RUTF/RUSF)", "School feeding", "Other (specify in Notes)", "No disbursement this month"];
-const UNITS = ["KES","USD","not applicable"];
+const UNIT_NA = "Not applicable (in kind)";
+const UNITS = ["KES","USD",UNIT_NA];
+const UNIT_KES_WORDS = ["kes","ksh","kshs","ks","kenyashilling","kenyashillings","kenyanshilling","kenyanshillings","shilling","shillings"];
+const UNIT_USD_WORDS = ["usd","us","usdollar","usdollars","dollar","dollars","unitedstatesdollar","unitedstatesdollars"];
+function normUnit(raw){
+  const t=String(raw??"").trim(); if(!t) return "";
+  if(t==="$") return "USD";
+  const n=norm(t);
+  if(UNIT_KES_WORDS.includes(n)) return "KES";
+  if(UNIT_USD_WORDS.includes(n)) return "USD";
+  if(NA.has(n)||n==="notapplicableinkind"||n==="inkindnotapplicable") return UNIT_NA;
+  return null;
+}
 const PAYS = ["Lump sum, one-off", "Monthly instalments", "Bi-monthly instalments", "Quarterly instalments", "In-kind, one-off", "In-kind, recurring", "Other (specify in Notes)"];
 const TEMPLATE_FILE = "drought_relief_disbursement_template.xlsx";
 
 const COLS = [
-  {k:"ward",label:"Ward",req:true,list:"dl-ward",s:"w"},
   {k:"county",label:"County",req:true,list:"dl-county",s:"c"},
+  {k:"ward",label:"Ward",req:true,list:"dl-ward",s:"w"},
   {k:"month",label:"Month (YYYY-MM)",req:true,list:"dl-month",s:"m"},
   {k:"aid",label:"Type of aid distributed",req:true,list:"dl-aid",s:"a"},
   {k:"amount",label:"Amount disbursed",req:true,s:"x"},
@@ -326,7 +339,9 @@ const NA = new Set(["notapplicable","nonapplicable","noapplicable","na","notapp"
 const MNAMES = ["jan","feb","mar","apr","may","jun","jul","aug","sep","oct","nov","dec"];
 
 function fillList(id,arr){ $("#"+id).innerHTML = arr.map(v=>`<option value="${esc(v)}">`).join(""); }
-fillList("dl-ward",WARDS); fillList("dl-county",COUNTIES); fillList("dl-month",MONTHS.slice().reverse());
+fillList("dl-ward",WARDS);
+COUNTIES.forEach((c,i)=>{ const dl=document.createElement("datalist"); dl.id="dl-ward-"+i; dl.innerHTML=WARDS.filter(w=>WARD_COUNTY[w]===c).map(w=>`<option value="${esc(w)}">`).join(""); document.body.appendChild(dl); });
+const wardListId=county=>{ const i=COUNTIES.indexOf(county); return i<0?"dl-ward":"dl-ward-"+i; }; fillList("dl-county",COUNTIES); fillList("dl-month",MONTHS.slice().reverse());
 fillList("dl-aid",AID_TYPES); fillList("dl-unit",UNITS); fillList("dl-pay",PAYS);
 
 let toastT;
@@ -365,10 +380,12 @@ function validateRow(r){
   const v=r.v, iss=[];
   const add=(k,lvl,msg)=>iss.push({k,lvl,msg});
   KEYS.forEach(k=>{ v[k]=String(v[k]??"").replace(/\s+/g," ").trim(); });
-  if(!v.ward) add("ward","err","Ward is missing");
-  else { const c=WARD_MAP.get(norm(v.ward)); if(c) v.ward=c; else add("ward","warn","Not one of the 125 wards in scope. Check the spelling, or explain in Notes"); }
   if(!v.county) add("county","err","County is missing");
-  else { const c=COUNTY_MAP.get(norm(v.county)); if(c) v.county=c; else add("county","warn","Not one of Kenya's 47 counties. Check the spelling"); }
+  else { const c=COUNTY_MAP.get(norm(v.county)); if(c) v.county=c; else add("county","err",`Not one of the ${COUNTIES.length} counties in scope. Choose from the list`); }
+  if(!v.ward) add("ward","err","Ward is missing");
+  else { const w=WARD_MAP.get(norm(v.ward));
+    if(!w) add("ward","warn",`Not one of the ${WARDS.length} wards in scope. Check the spelling, or explain in Notes`);
+    else { v.ward=w; if(COUNTY_MAP.has(norm(v.county)) && WARD_COUNTY[w]!==v.county) add("ward","warn",`${w} is in ${WARD_COUNTY[w]} County, not ${v.county}. Check the county or the ward`); } }
   if(!v.month) add("month","err","Month is missing");
   else { const m=parseMonth(v.month);
     if(!m) add("month","err","Use the format YYYY-MM, for example 2024-03");
@@ -385,9 +402,13 @@ function validateRow(r){
     else { const s=String(a); if(s!==v.amount){ setFix(r,"amount",`Amount “${v.amount}” read as ${s}`); v.amount=s; }
       if(typeof a==="number"&&a<0) add("amount","err","Amount cannot be negative");
       if(noAid&&a!==0) add("amount","warn","Type of aid says no disbursement, but the amount is not 0"); } }
-  if(v.unit && NA.has(norm(v.unit)) && v.unit!=="not applicable"){ setFix(r,"unit",`Unit “${v.unit}” read as not applicable`); v.unit="not applicable"; }
+  if(v.unit){ const u=normUnit(v.unit);
+    if(u===null) add("unit","err","Use KES, USD, or Not applicable (in kind)");
+    else if(u!==v.unit){ setFix(r,"unit",`Unit “${v.unit}” read as ${u}`); v.unit=u; } }
   const zero = v.amount==="0";
-  if(!v.unit && !zero) add("unit","err","Currency or unit is missing");
+  if(!v.unit && !zero) add("unit","err","Currency / unit is missing. Use KES, USD, or Not applicable (in kind)");
+  if(v.unit===UNIT_NA && /^\d/.test(v.amount) && !zero) add("amount","warn","The unit is in kind, so the amount should be “not applicable”. Put any estimated value in Notes");
+  if((v.unit==="KES"||v.unit==="USD") && v.amount==="not applicable") add("amount","warn",`The amount is “not applicable” but the unit is ${v.unit}. Enter the amount, or set the unit to Not applicable (in kind)`);
   if(v.hh===""){ if(!zero) add("hh","err","Households served is missing"); }
   else { const h=parseCount(v.hh);
     if(h===null) add("hh","err","Enter a whole number of households");
@@ -519,7 +540,7 @@ function statusHTML(r){
 function cellClass(r,k){ if(r.issues.some(i=>i.k===k&&i.lvl==="err")) return "c-err"; if(r.issues.some(i=>i.k===k&&i.lvl==="warn")) return "c-warn"; if((r.fixes||[]).some(f=>f.k===k)) return "c-fix"; return ""; }
 function rowHTML(r,n){
   return `<tr data-id="${r.id}"><td class="num">${n}</td><td class="stat">${statusHTML(r)}</td>`+
-    COLS.map(c=>`<td class="k-${c.k} ${cellClass(r,c.k)}"><input id="c-${r.id}-${c.k}" data-k="${c.k}" value="${esc(r.v[c.k])}"${c.list?` list="${c.list}"`:""} aria-label="${esc(c.label)}, row ${n}" autocomplete="off"></td>`).join("")+
+    COLS.map(c=>`<td class="k-${c.k} ${cellClass(r,c.k)}"><input id="c-${r.id}-${c.k}" data-k="${c.k}" value="${esc(r.v[c.k])}"${c.list?` list="${c.k==="ward"?wardListId(r.v.county):c.list}"`:""} aria-label="${esc(c.label)}, row ${n}" autocomplete="off"></td>`).join("")+
     `<td><button class="del" type="button" data-del="${r.id}" aria-label="Delete row ${n}">×</button></td></tr>`;
 }
 function renderGrid(){
@@ -538,7 +559,7 @@ function renderGrid(){
 function updateRowDom(r){
   const tr=$("#gridBody").querySelector(`tr[data-id="${r.id}"]`); if(!tr) return;
   tr.querySelector("td.stat").innerHTML=statusHTML(r);
-  tr.querySelectorAll("input[data-k]").forEach(inp=>{ const k=inp.dataset.k; if(document.activeElement!==inp&&inp.value!==r.v[k]) inp.value=r.v[k]; inp.parentElement.className=`k-${k} ${cellClass(r,k)}`; });
+  tr.querySelectorAll("input[data-k]").forEach(inp=>{ const k=inp.dataset.k; if(document.activeElement!==inp&&inp.value!==r.v[k]) inp.value=r.v[k]; inp.parentElement.className=`k-${k} ${cellClass(r,k)}`; if(k==="ward") inp.setAttribute("list",wardListId(r.v.county)); });
 }
 function renderAll(){ renderTiles(); renderGrid(); }
 function syncFilter(){ document.querySelectorAll("[data-filter]").forEach(b=>b.setAttribute("aria-pressed",String(b.dataset.filter===state.filter))); }
@@ -603,7 +624,7 @@ $("#btnDownloadChecked").addEventListener("click",()=>{
   const banner=COLS.map((c,i)=>i===0?"REQUIRED":(i===7?"OPTIONAL — please complete if the information is available":""));
   const aoa=[banner,COLS.map(c=>c.label)];
   for(const r of rows){ const v=r.v; const amt=parseAmount(v.amount), hh=parseCount(v.hh);
-    aoa.push([v.ward,v.county,v.month,v.aid,(typeof amt==="number"?amt:v.amount),v.unit,(hh!==null?hh:v.hh),v.agency,v.pay,v.notes]); }
+    aoa.push([v.county,v.ward,v.month,v.aid,(typeof amt==="number"?amt:v.amount),v.unit,(hh!==null?hh:v.hh),v.agency,v.pay,v.notes]); }
   const ws=XLSX.utils.aoa_to_sheet(aoa);
   for(let i=0;i<rows.length;i++){ const ref=XLSX.utils.encode_cell({r:i+2,c:2}); if(ws[ref]){ ws[ref].t="s"; ws[ref].z="@"; } }
   ws["!cols"]=COLS.map(c=>({wch:c.k==="notes"?50:Math.max(14,c.label.length+2)}));
