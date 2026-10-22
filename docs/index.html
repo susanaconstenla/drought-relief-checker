@@ -275,7 +275,7 @@ code,.code{font-family:var(--f-mono);font-size:.92em;background:var(--surface-2)
 
     <div class="panel">
       <h2>3. Download your checked file</h2>
-      <p class="sub">Saves a clean copy of your rows in the template's format, with your details and a list of anything flagged or corrected. Rows flagged to double-check are kept; explain them in the message or in Notes if needed. Once the file is saved, the page clears your data from this browser.</p>
+      <p class="sub">Saves a clean copy of your rows in the template's format, with your details and a list of anything flagged or corrected. Rows marked <span class="pill warn">Check</span> (for example, the same aid entered twice, or a ward listed under a different county) are included as they are. If such a row is correct, add a short explanation in its Notes column or in your message in step 1. Once the file is saved, the page clears your data from this browser.</p>
       <div class="row"><button class="btn primary" id="btnDownloadChecked" type="button">Download checked file (.xlsx)</button><span class="muted" id="dlHint" style="font-size:13px"></span></div>
       <div id="dlResult" style="margin-top:14px" hidden></div>
     </div>
