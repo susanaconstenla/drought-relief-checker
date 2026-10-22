@@ -104,6 +104,13 @@ td.c-err input{background:var(--err-soft);border-color:var(--err)}
 td.c-warn input{background:var(--warn-soft)}
 td.c-fix input{background:var(--fix-soft)}
 .pill{display:inline-block;font-size:11px;font-weight:600;letter-spacing:.03em;padding:1px 7px;border-radius:999px;margin-right:4px}
+.about{display:grid;grid-template-columns:minmax(0,1fr) 300px;gap:24px;align-items:start}
+.about-text p{margin:0 0 10px;max-width:72ch}
+.about-text p:last-child{margin-bottom:0}
+.contact{background:var(--surface-2);border:1px solid var(--line);border-radius:var(--r);padding:14px 16px}
+.contact p{margin:0 0 8px}
+.contact .eyebrow-s{font-size:12px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);margin-bottom:6px}
+@media (max-width:760px){.about{grid-template-columns:1fr}}
 .howto{margin:0 0 16px;padding:14px 16px;border-radius:var(--r);background:var(--surface-2);border:1px solid var(--line);font-size:14px}
 .howto h3{margin:0 0 6px}
 .howto ul{margin:0;padding-left:18px;display:flex;flex-direction:column;gap:6px;max-width:95ch}
@@ -173,6 +180,22 @@ code,.code{font-family:var(--f-mono);font-size:.92em;background:var(--surface-2)
 <main class="wrap">
   <!-- SUBMIT -->
   <section id="tab-submit" role="tabpanel" aria-labelledby="t-submit">
+    <div class="panel about">
+      <div class="about-text">
+        <h2>About this request</h2>
+        <p>We are a research team at Cornell University carrying out an impact evaluation of the drought relief response in Kenya's arid and semi-arid lands (ASAL), delivered through the National Drought Management Authority (NDMA) and its partners.</p>
+        <p>To measure what that support achieved, we need to know where and when relief reached communities: for each ward and each month since January 2024, the type of aid distributed, the amount (for cash transfers) or its estimated value (for in-kind aid, where known), who distributed it, and how many households it reached. The ward-month detail is what makes the evaluation possible, because it lets us compare places and months that received support with those that did not. Months with no aid matter too, so please record them as zero.</p>
+        <p>Partial data is very welcome. If some wards or months are not feasible for your team, send what you have and get in touch.</p>
+      </div>
+      <aside class="contact" aria-label="Contact">
+        <p class="eyebrow-s">Contact</p>
+        <p class="who"><b>Susana Constenla-Villoslada</b><br>Assistant Research Professor, Information Science<br>Cornell University</p>
+        <p><span class="code" id="aboutEmail">sc2875@cornell.edu</span></p>
+        <button class="btn small" type="button" data-copy="sc2875@cornell.edu" data-copy-target="aboutEmail">Copy email address</button>
+        <p class="muted" style="font-size:13px;margin:10px 0 0">Questions about any field, the ward list, or how to share your data are welcome.</p>
+      </aside>
+    </div>
+
     <div class="notice"><b>How it works:</b> 1. tell us who you are · 2. upload your file and fix anything flagged · 3. download the checked file · 4. upload it to Cornell Box. Nothing leaves your computer until step 4.</div>
 
     <div class="panel">
@@ -217,7 +240,7 @@ code,.code{font-family:var(--f-mono);font-size:.92em;background:var(--surface-2)
           <li><b>Click any cell to change it.</b> The row is checked again as you type, and the totals and status message above update straight away. Hover over a row's result to see every note for that row.</li>
           <li><b>Errors must be fixed, or the row removed,</b> before you can download the checked file. Rows marked <i>Check</i> can stay as they are; explain them in the Notes column or in your message in step 1.</li>
           <li>Use <b>Needs a look</b> or <b>Errors only</b> to see just the rows that need attention, and <b>Re-check all rows</b> to run every check again.</li>
-          <li><b>Your changes are kept on this page,</b> even if you reload it in this browser, and they go into the checked file you download in step 3. Your original file is not changed.</li>
+          <li><b>Your changes are kept on this page</b> (even if you reload it in this browser) until you download the checked file in step 3. They go into that file, and then the page clears them from this browser. Your original file is not changed.</li>
         </ul>
       </div>
       <div class="toolbar">
@@ -253,7 +276,7 @@ code,.code{font-family:var(--f-mono);font-size:.92em;background:var(--surface-2)
 
     <div class="panel">
       <h2>3. Download your checked file</h2>
-      <p class="sub">Saves a clean copy of your rows in the template's format, with your details and a list of anything flagged or corrected. Rows flagged to double-check are kept; explain them in the message or in Notes if needed.</p>
+      <p class="sub">Saves a clean copy of your rows in the template's format, with your details and a list of anything flagged or corrected. Rows flagged to double-check are kept; explain them in the message or in Notes if needed. Once the file is saved, the page clears your data from this browser.</p>
       <div class="row"><button class="btn primary" id="btnDownloadChecked" type="button">Download checked file (.xlsx)</button><span class="muted" id="dlHint" style="font-size:13px"></span></div>
       <div id="dlResult" style="margin-top:14px" hidden></div>
     </div>
@@ -298,7 +321,7 @@ code,.code{font-family:var(--f-mono);font-size:.92em;background:var(--surface-2)
     </div>
     <div class="panel">
       <h2>Questions</h2>
-      <p class="sub" style="margin-bottom:10px">Contact Susana Constenla-Villoslada about any field.</p>
+      <p class="sub" style="margin-bottom:10px">Contact Susana Constenla-Villoslada (Assistant Research Professor, Information Science, Cornell University) about any field.</p>
       <div class="row"><span class="code" id="contactEmail">sc2875@cornell.edu</span><button class="btn small" id="btnCopyEmail" type="button">Copy email address</button></div>
     </div>
   </section>
@@ -657,6 +680,15 @@ function updateSubmitHint(){
   $("#dlHint").textContent=hint;
   $("#btnDownloadChecked").disabled=!!hint;
 }
+// After the checked file is downloaded, remove everything the partner entered from the page and the browser.
+function clearPageData(){
+  clearTimeout(draftT);
+  try{ localStorage.removeItem(DRAFT_KEY); }catch(e){}
+  state.rows=[]; state.fileName=""; state.page=0; state.filter="all"; syncFilter();
+  ["fOrg","fName","fEmail","fMsg"].forEach(id=>{ $("#"+id).value=""; });
+  $("#importMsg").hidden=true; $("#importMsg").innerHTML=""; $("#clearConfirm").hidden=true;
+  renderAll();
+}
 function renderBox(){
   const u=boxUrl(), el=$("#boxRow");
   if(u){
@@ -705,8 +737,9 @@ $("#btnDownloadChecked").addEventListener("click",()=>{
 
   const name=checkedFileName();
   XLSX.writeFile(wb,name);
+  clearPageData();
   $("#dlResult").hidden=false;
-  $("#dlResult").innerHTML=`<div class="notice ok">Saved <b>${esc(name)}</b> to your downloads. Now upload that file in step 4.</div>`;
+  $("#dlResult").innerHTML=`<div class="notice ok"><b>Saved ${esc(name)} to your downloads.</b> For privacy, your rows and details have now been cleared from this page and this browser. Next, upload that file in step 4. If you need to change anything, upload the checked file again in step 2.</div>`;
   $("#step4").scrollIntoView({behavior:"smooth",block:"nearest"});
 });
 renderBox();
@@ -727,10 +760,12 @@ function covHTML(covs){
 /* ---------- small helpers ---------- */
 const slug=s=>(String(s||"org").toLowerCase().replace(/[^a-z0-9]+/g,"_").replace(/^_|_$/g,"").slice(0,40)||"org");
 $("#btnTemplate").addEventListener("click",()=>{ window.location.href="drought_relief_disbursement_template.xlsx"; });
-$("#btnCopyEmail").addEventListener("click",async()=>{
-  try{ await navigator.clipboard.writeText("sc2875@cornell.edu"); toast("Email address copied"); }
-  catch(e){ const r=document.createRange(); r.selectNodeContents($("#contactEmail")); const s=getSelection(); s.removeAllRanges(); s.addRange(r); toast("Press Ctrl+C or ⌘C to copy"); }
-});
+async function copyText(text,targetId){
+  try{ await navigator.clipboard.writeText(text); toast("Email address copied"); }
+  catch(e){ const r=document.createRange(); r.selectNodeContents(document.getElementById(targetId)); const s=getSelection(); s.removeAllRanges(); s.addRange(r); toast("Press Ctrl+C or ⌘C to copy"); }
+}
+$("#btnCopyEmail").addEventListener("click",()=>copyText("sc2875@cornell.edu","contactEmail"));
+document.addEventListener("click",e=>{ const b=e.target.closest("[data-copy]"); if(b) copyText(b.dataset.copy,b.dataset.copyTarget); });
 
 /* ---------- tabs ---------- */
 function showTab(name){
