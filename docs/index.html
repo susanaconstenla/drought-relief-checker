@@ -169,18 +169,17 @@ code,.code{font-family:var(--f-mono);font-size:.92em;background:var(--surface-2)
 <main class="wrap">
   <!-- SUBMIT -->
   <section id="tab-submit" role="tabpanel" aria-labelledby="t-submit">
-    <div class="notice"><b>How it works:</b> 1. add your rows and fix anything flagged · 2. tell us who you are · 3. download the checked file · 4. upload it to Cornell Box. Nothing leaves your computer until step 4.</div>
+    <div class="notice"><b>How it works:</b> 1. upload your file and fix anything flagged · 2. tell us who you are · 3. download the checked file · 4. upload it to Cornell Box. Nothing leaves your computer until step 4.</div>
 
     <div class="panel">
-      <h2>1. Add your rows</h2>
-      <p class="sub">Upload the filled-in Excel template, or any .xlsx or .csv file with the same column headings. You can also type rows in directly. Every row is checked against the template rules, and you can fix problems here before you upload.</p>
+      <h2>1. Upload your file</h2>
+      <p class="sub">Upload the filled-in Excel template, or any .xlsx or .csv file with the same column headings. Every row is checked against the template rules, and you can fix problems here before you upload.</p>
       <div class="drop" id="drop">
         <p><strong>Drop your file here</strong> or choose it from your computer</p>
         <div class="row" style="justify-content:center">
           <label class="btn primary" for="file">Choose file…</label>
           <input type="file" id="file" class="sr" accept=".xlsx,.xls,.csv,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,text/csv">
           <button class="btn" id="btnTemplate" type="button">Download blank template (.xlsx)</button>
-          <button class="btn" id="btnAddRow" type="button">Add a row by hand</button>
         </div>
         <p style="font-size:13px">Your file is read in this browser. Nothing is sent anywhere until you upload it in step 4.</p>
       </div>
@@ -529,7 +528,7 @@ function renderGrid(){
   const start=state.page*PAGE, slice=list.slice(start,start+PAGE);
   const pos=new Map(state.rows.map((r,i)=>[r.id,i+1]));
   const body=$("#gridBody");
-  if(!state.rows.length) body.innerHTML=`<tr><td colspan="13" class="empty">No rows yet. Upload your filled-in template above, or add a row by hand.</td></tr>`;
+  if(!state.rows.length) body.innerHTML=`<tr><td colspan="13" class="empty">No rows yet. Upload your filled-in template above.</td></tr>`;
   else if(!slice.length) body.innerHTML=`<tr><td colspan="13" class="empty">No rows match this filter. Everything here looks fine.</td></tr>`;
   else body.innerHTML=slice.map(r=>rowHTML(r,pos.get(r.id))).join("");
   $("#gridCount").textContent= state.rows.length ? (state.filter==="all"?`${fmt(state.rows.length)} rows`:`${fmt(list.length)} of ${fmt(state.rows.length)} rows`) : "";
@@ -560,13 +559,6 @@ $("#gridBody").addEventListener("click",e=>{
 });
 $("#pager").addEventListener("click",e=>{ const b=e.target.closest("[data-pg]"); if(!b) return; state.page+=Number(b.dataset.pg); renderGrid(); $("#gridScroll").scrollIntoView({block:"nearest"}); });
 document.querySelectorAll("[data-filter]").forEach(b=>b.addEventListener("click",()=>setFilter(b.dataset.filter)));
-$("#btnAddRow").addEventListener("click",()=>{
-  const last=state.rows[state.rows.length-1];
-  const v=Object.fromEntries(KEYS.map(k=>[k,""])); if(last){ v.ward=last.v.ward; v.county=last.v.county; }
-  const r={id:newId(),v,issues:[],fixes:[]}; validateRow(r); state.rows.push(r); recomputeDupes();
-  state.filter="all"; syncFilter(); state.page=Math.floor((state.rows.length-1)/PAGE); renderAll(); saveDraft();
-  const el=document.getElementById(`c-${r.id}-${last?"month":"ward"}`); if(el){ el.focus(); el.scrollIntoView({block:"center"}); }
-});
 $("#btnClear").addEventListener("click",()=>{ if(!state.rows.length) return; $("#clearN").textContent=fmt(state.rows.length); $("#clearConfirm").hidden=false; });
 $("#btnClearNo").addEventListener("click",()=>$("#clearConfirm").hidden=true);
 $("#btnClearYes").addEventListener("click",()=>{ state.rows=[]; state.fileName=""; $("#clearConfirm").hidden=true; $("#importMsg").hidden=true; renderAll(); saveDraft(); toast("All rows removed from this page"); });
@@ -584,7 +576,7 @@ const CHECKER_VERSION="2026-10-22";
 const boxUrl=()=> (typeof window.BOX_FILE_REQUEST_URL==="string" && /^https:\/\/[^\s"]+$/.test(window.BOX_FILE_REQUEST_URL)) ? window.BOX_FILE_REQUEST_URL : "";
 function updateSubmitHint(){
   const errs=state.rows.filter(r=>statusOf(r)==="err").length; let hint="";
-  if(!state.rows.length) hint="Add some rows first.";
+  if(!state.rows.length) hint="Upload your file in step 1 first.";
   else if(errs) hint=`Fix or remove the ${fmt(errs)} ${errs===1?"row":"rows"} with errors first.`;
   else if(!$("#fOrg").value.trim()) hint="Enter your organization's name in step 2.";
   $("#dlHint").textContent=hint;
