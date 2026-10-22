@@ -104,6 +104,10 @@ td.c-err input{background:var(--err-soft);border-color:var(--err)}
 td.c-warn input{background:var(--warn-soft)}
 td.c-fix input{background:var(--fix-soft)}
 .pill{display:inline-block;font-size:11px;font-weight:600;letter-spacing:.03em;padding:1px 7px;border-radius:999px;margin-right:4px}
+.howto{margin:0 0 16px;padding:14px 16px;border-radius:var(--r);background:var(--surface-2);border:1px solid var(--line);font-size:14px}
+.howto h3{margin:0 0 6px}
+.howto ul{margin:0;padding-left:18px;display:flex;flex-direction:column;gap:6px;max-width:95ch}
+.howto .pill{margin:0 2px}
 .pill.err{background:var(--err-soft);color:var(--err)} .pill.warn{background:var(--warn-soft);color:var(--warn)}
 .pill.ok{background:var(--ok-soft);color:var(--ok)} .pill.fix{background:var(--fix-soft);color:var(--fix)}
 .msg{display:block;color:var(--muted);margin-top:2px}
@@ -169,10 +173,21 @@ code,.code{font-family:var(--f-mono);font-size:.92em;background:var(--surface-2)
 <main class="wrap">
   <!-- SUBMIT -->
   <section id="tab-submit" role="tabpanel" aria-labelledby="t-submit">
-    <div class="notice"><b>How it works:</b> 1. upload your file and fix anything flagged · 2. tell us who you are · 3. download the checked file · 4. upload it to Cornell Box. Nothing leaves your computer until step 4.</div>
+    <div class="notice"><b>How it works:</b> 1. tell us who you are · 2. upload your file and fix anything flagged · 3. download the checked file · 4. upload it to Cornell Box. Nothing leaves your computer until step 4.</div>
 
     <div class="panel">
-      <h2>1. Upload your file</h2>
+      <h2>1. Tell us who you are</h2>
+      <p class="sub">These details go into the checked file so the research team knows who sent it.</p>
+      <div class="fields">
+        <label class="f">Organization <input id="fOrg" autocomplete="organization" placeholder="e.g. County Government of Marsabit"></label>
+        <label class="f">Contact person <input id="fName" autocomplete="name" placeholder="Full name"></label>
+        <label class="f">Contact email <input id="fEmail" type="email" autocomplete="email" placeholder="name@organization.org"></label>
+        <label class="f full">Message to the research team <span class="h">Optional. For example, which wards or months are not covered and why.</span><textarea id="fMsg"></textarea></label>
+      </div>
+    </div>
+
+    <div class="panel">
+      <h2>2. Upload your file</h2>
       <p class="sub">Upload the filled-in Excel template, or any .xlsx or .csv file with the same column headings. Every row is checked against the template rules, and you can fix problems here before you upload.</p>
       <div class="drop" id="drop">
         <p><strong>Drop your file here</strong> or choose it from your computer</p>
@@ -188,7 +203,23 @@ code,.code{font-family:var(--f-mono);font-size:.92em;background:var(--surface-2)
 
     <div class="tiles" id="tiles"></div>
 
+    <div id="checkStatus" role="status" aria-live="polite" hidden></div>
+
     <div class="panel">
+      <div class="howto">
+        <h3>How fixing works</h3>
+        <ul>
+          <li><b>Every row is checked as soon as your file is read.</b> The <i>Check</i> column shows the result:
+            <span class="pill ok">OK</span> nothing to do,
+            <span class="pill fix">Tidied</span> we corrected the format for you (for example <span class="code">Mar 2024</span> → <span class="code">2024-03</span>), shown in blue,
+            <span class="pill warn">Check</span> worth a second look, shown in yellow,
+            <span class="pill err">Error</span> must be fixed, shown in red.</li>
+          <li><b>Click any cell to change it.</b> The row is checked again as you type, and the totals and status message above update straight away. Hover over a row's result to see every note for that row.</li>
+          <li><b>Errors must be fixed, or the row removed,</b> before you can download the checked file. Rows marked <i>Check</i> can stay as they are; explain them in the Notes column or in your message in step 1.</li>
+          <li>Use <b>Needs a look</b> or <b>Errors only</b> to see just the rows that need attention, and <b>Re-check all rows</b> to run every check again.</li>
+          <li><b>Your changes are kept on this page,</b> even if you reload it in this browser, and they go into the checked file you download in step 3. Your original file is not changed.</li>
+        </ul>
+      </div>
       <div class="toolbar">
         <div class="row">
           <div class="seg" role="group" aria-label="Filter rows">
@@ -199,6 +230,7 @@ code,.code{font-family:var(--f-mono);font-size:.92em;background:var(--surface-2)
           <span class="muted" id="gridCount" style="font-size:13px"></span>
         </div>
         <div class="row">
+          <button class="btn small" id="btnRecheck" type="button">Re-check all rows</button>
           <button class="btn small" id="btnDropErr" type="button" hidden>Remove rows with errors</button>
           <button class="btn small" id="btnClear" type="button">Clear all rows</button>
         </div>
@@ -217,17 +249,6 @@ code,.code{font-family:var(--f-mono);font-size:.92em;background:var(--surface-2)
         </table>
       </div>
       <div class="pager" id="pager"></div>
-    </div>
-
-    <div class="panel">
-      <h2>2. Tell us who you are</h2>
-      <p class="sub">These details go into the checked file so the research team knows who sent it.</p>
-      <div class="fields">
-        <label class="f">Organization <input id="fOrg" autocomplete="organization" placeholder="e.g. County Government of Marsabit"></label>
-        <label class="f">Contact person <input id="fName" autocomplete="name" placeholder="Full name"></label>
-        <label class="f">Contact email <input id="fEmail" type="email" autocomplete="email" placeholder="name@organization.org"></label>
-        <label class="f full">Message to the research team <span class="h">Optional. For example, which wards or months are not covered and why.</span><textarea id="fMsg"></textarea></label>
-      </div>
     </div>
 
     <div class="panel">
@@ -491,8 +512,7 @@ function applyImport(mode){
   validateAll(); state.page=0; state.filter="all"; syncFilter();
   const fixed=rows.filter(r=>r.fixes.length).length, errs=rows.filter(r=>statusOf(r)==="err").length, warns=rows.filter(r=>statusOf(r)==="warn").length;
   const miss=res.missing.filter(k=>COLS.find(c=>c.k===k).req);
-  let html=`<div class="notice ${errs?"warn":"ok"}">Read <b>${fmt(rows.length)}</b> rows from the “${esc(res.sheet)}” sheet of <b>${esc(name)}</b>. `;
-  html+= errs||warns ? `${fmt(errs)} ${errs===1?"row has":"rows have"} errors to fix and ${fmt(warns)} ${warns===1?"needs":"need"} a second look. ` : `No problems found. `;
+  let html=`<div class="notice">Read <b>${fmt(rows.length)}</b> rows from the “${esc(res.sheet)}” sheet of <b>${esc(name)}</b>. The check results are below. `;
   if(fixed) html+=`${fmt(fixed)} ${fixed===1?"row had values":"rows had values"} tidied automatically (shown in blue). `;
   if(miss.length) html+=`<br>Required columns not found in the file: ${miss.map(k=>"<b>"+esc(LABEL[k])+"</b>").join(", ")}. You can fill them in below.`;
   if(res.unknown.length) html+=`<br>Columns ignored: ${res.unknown.map(esc).join(", ")}.`;
@@ -514,6 +534,23 @@ function summarize(rows){
   }
   return {wards:wards.size,months:months.size,hh,minM,maxM,cov};
 }
+function renderCheckStatus(errs,warns){
+  const box=$("#checkStatus"), n=state.rows.length;
+  if(!n){ box.hidden=true; return; }
+  box.hidden=false;
+  if(errs){
+    box.className="notice err";
+    box.innerHTML=`<b>${fmt(errs)} ${errs===1?"row still has":"rows still have"} errors.</b> Fix the cells marked in red in the table (the check updates as you type), or remove those rows. <button class="btn small" type="button" data-show="errors">Show only rows with errors</button>`;
+  } else if(warns){
+    box.className="notice warn";
+    box.innerHTML=`<b>No errors: your rows are ready for step 3.</b> ${fmt(warns)} ${warns===1?"row is":"rows are"} flagged to double-check. You can keep ${warns===1?"it":"them"} and explain in Notes or in the message in step 1. Your corrections are saved on this page and go into the checked file. <button class="btn small" type="button" data-show="issues">Show flagged rows</button>`;
+  } else {
+    box.className="notice ok";
+    box.innerHTML=`<b>All ${fmt(n)} rows pass the checks.</b> Your corrections are saved on this page and go into the checked file. Continue with step 3 below.`;
+  }
+}
+$("#checkStatus").addEventListener("click",e=>{ const b=e.target.closest("[data-show]"); if(b){ setFilter(b.dataset.show); $("#gridScroll").scrollIntoView({block:"nearest"}); } });
+
 function renderTiles(){
   const s=summarize(state.rows);
   const errs=state.rows.filter(r=>statusOf(r)==="err").length, warns=state.rows.filter(r=>statusOf(r)==="warn").length;
@@ -526,6 +563,7 @@ function renderTiles(){
     ["Rows to double-check",fmt(warns),warns?"meh":""],
   ].map(([k,v,c])=>`<div class="tile ${c}"><div class="k">${k}</div><div class="v">${v}</div></div>`).join("");
   $("#btnDropErr").hidden=!errs;
+  renderCheckStatus(errs,warns);
   updateSubmitHint();
 }
 function filtered(){ const f=state.filter; return state.rows.filter(r=>{ const s=statusOf(r); return f==="all"||(f==="errors"?s==="err":(s==="err"||s==="warn")); }); }
@@ -565,14 +603,23 @@ function renderAll(){ renderTiles(); renderGrid(); }
 function syncFilter(){ document.querySelectorAll("[data-filter]").forEach(b=>b.setAttribute("aria-pressed",String(b.dataset.filter===state.filter))); }
 function setFilter(f){ state.filter=f; state.page=0; syncFilter(); renderGrid(); }
 
-$("#gridBody").addEventListener("change",e=>{
-  const inp=e.target.closest("input[data-k]"); if(!inp) return;
+// Re-check a row whenever a cell changes: while typing (after a short pause) and again when leaving the cell.
+function recheckCell(inp, leaving){
   const r=state.rows.find(x=>x.id===inp.closest("tr").dataset.id); if(!r) return;
   const k=inp.dataset.k; r.v[k]=inp.value; r.fixes=(r.fixes||[]).filter(f=>f.k!==k);
   validateRow(r); recomputeDupes();
-  inp.value=r.v[k];
+  if(leaving) inp.value=r.v[k];   // show the tidied value only once the person leaves the cell
   $("#gridBody").querySelectorAll("tr[data-id]").forEach(tr=>{ const x=state.rows.find(y=>y.id===tr.dataset.id); if(x) updateRowDom(x); });
   renderTiles(); saveDraft();
+}
+let typingT;
+$("#gridBody").addEventListener("input",e=>{
+  const inp=e.target.closest("input[data-k]"); if(!inp) return;
+  clearTimeout(typingT); typingT=setTimeout(()=>recheckCell(inp,false),300);
+});
+$("#gridBody").addEventListener("change",e=>{
+  const inp=e.target.closest("input[data-k]"); if(!inp) return;
+  clearTimeout(typingT); recheckCell(inp,true);
 });
 $("#gridBody").addEventListener("click",e=>{
   const b=e.target.closest("[data-del]"); if(!b) return;
@@ -580,6 +627,13 @@ $("#gridBody").addEventListener("click",e=>{
 });
 $("#pager").addEventListener("click",e=>{ const b=e.target.closest("[data-pg]"); if(!b) return; state.page+=Number(b.dataset.pg); renderGrid(); $("#gridScroll").scrollIntoView({block:"nearest"}); });
 document.querySelectorAll("[data-filter]").forEach(b=>b.addEventListener("click",()=>setFilter(b.dataset.filter)));
+$("#btnRecheck").addEventListener("click",()=>{
+  if(!state.rows.length){ toast("Upload your file first"); return; }
+  validateAll(); renderAll(); saveDraft();
+  const errs=state.rows.filter(r=>statusOf(r)==="err").length;
+  toast(errs?`Checked ${fmt(state.rows.length)} rows: ${fmt(errs)} still ${errs===1?"has":"have"} errors`:`Checked ${fmt(state.rows.length)} rows: no errors`);
+  $("#checkStatus").scrollIntoView({block:"nearest"});
+});
 $("#btnClear").addEventListener("click",()=>{ if(!state.rows.length) return; $("#clearN").textContent=fmt(state.rows.length); $("#clearConfirm").hidden=false; });
 $("#btnClearNo").addEventListener("click",()=>$("#clearConfirm").hidden=true);
 $("#btnClearYes").addEventListener("click",()=>{ state.rows=[]; state.fileName=""; $("#clearConfirm").hidden=true; $("#importMsg").hidden=true; renderAll(); saveDraft(); toast("All rows removed from this page"); });
@@ -597,9 +651,9 @@ const CHECKER_VERSION="2026-10-22";
 const boxUrl=()=> (typeof window.BOX_FILE_REQUEST_URL==="string" && /^https:\/\/[^\s"]+$/.test(window.BOX_FILE_REQUEST_URL)) ? window.BOX_FILE_REQUEST_URL : "";
 function updateSubmitHint(){
   const errs=state.rows.filter(r=>statusOf(r)==="err").length; let hint="";
-  if(!state.rows.length) hint="Upload your file in step 1 first.";
+  if(!$("#fOrg").value.trim()) hint="Enter your organization's name in step 1.";
+  else if(!state.rows.length) hint="Upload your file in step 2 first.";
   else if(errs) hint=`Fix or remove the ${fmt(errs)} ${errs===1?"row":"rows"} with errors first.`;
-  else if(!$("#fOrg").value.trim()) hint="Enter your organization's name in step 2.";
   $("#dlHint").textContent=hint;
   $("#btnDownloadChecked").disabled=!!hint;
 }
